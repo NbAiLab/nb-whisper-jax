@@ -560,14 +560,22 @@ if __name__ == "__main__":
         """)
     ]
     
-    # Define the interface with Accordion for advanced options
+    def transcribe_chunked_audio_with_options(file, language, return_timestamps, num_beams, temperature):
+        # Your existing logic for handling the file, language, and return_timestamps
+        # Use num_beams and temperature as needed in your transcription logic
+    
+        # Assuming 'transcribe_chunked_audio' is your existing function
+        return transcribe_chunked_audio(file, language, return_timestamps)
+    
+    # Define the interface
     audio_chunked = gr.Interface(
-        fn=transcribe_chunked_audio,
+        fn=transcribe_chunked_audio_with_options,
         inputs=[
             gr.Audio(sources=["upload", "microphone"], label="Audio file", type="filepath"),
             gr.Radio(["Bokmål", "Nynorsk", "English"], label="Output Language", value="Bokmål"),
             gr.Checkbox(value=True, label="Return timestamps"),
-            gr.Accordion(advanced_options, label="Advanced Options")  # Accordion containing advanced options
+            gr.Slider(minimum=1, maximum=10, step=1, label="Number of Beams", value=3),
+            gr.Slider(minimum=0, maximum=3, step=0.1, label="Temperature", value=1.0)
         ],
         outputs=[
             gr.Video(label="Video", visible=True),
