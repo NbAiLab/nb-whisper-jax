@@ -538,31 +538,6 @@ if __name__ == "__main__":
         article=article,
     )
     
-    # Define the advanced options within an Accordion
-    advanced_options = gr.Accordion([
-        gr.Slider(minimum=1, maximum=10, step=1, label="Number of Beams", value=3),
-        gr.Slider(minimum=0, maximum=3, step=0.1, label="Temperature", value=1.0),
-        gr.Markdown("""
-            **Advanced Options Help:**
-            - **Number of Beams:** Determines the breadth of the search for the best output sequence. A higher number generally increases accuracy but requires more computation.
-            - **Temperature:** Controls randomness in generation. A lower value results in more predictable results, while a higher value encourages diversity and creativity in the output.
-        """)
-    ])
-    
-    # Define the advanced options
-    advanced_options = [
-        gr.Slider(minimum=1, maximum=10, step=1, label="Number of Beams", value=3),
-        gr.Slider(minimum=0, maximum=3, step=0.1, label="Temperature", value=1.0),
-        gr.Markdown("""
-            **Advanced Options Help:**
-            - **Number of Beams:** Determines the breadth of the search for the best output sequence.
-            - **Temperature:** Controls randomness in generation.
-        """)
-    ]
-    
-    import gradio as gr
-
-
     audio_chunked_inputs = [
         gr.Audio(sources=["upload", "microphone"], label="Audio file", type="filepath"),
         gr.Radio(["Bokmål", "Nynorsk", "English"], label="Output Language", value="Bokmål"),
