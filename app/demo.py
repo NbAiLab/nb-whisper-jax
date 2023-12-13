@@ -326,7 +326,7 @@ if __name__ == "__main__":
             for batch, _ in zip(dataloader, progress.tqdm(dummy_batches, desc="Transcribing...")):
                 verbatim_outputs.append(
                     pipeline.forward(batch, batch_size=BATCH_SIZE, task="transcribe", language=language,
-                                     return_timestamps=return_timestamps)
+                                     num_beams=4,return_timestamps=return_timestamps)
                 )
 
         # Semantic (translate) loop
@@ -538,26 +538,7 @@ if __name__ == "__main__":
         article=article,
     )
 
-    audio_chunked = gr.Interface(
-        fn=transcribe_chunked_audio,
-        inputs=[
-            gr.Audio(sources=["upload","microphone"], label="Audio file", type="filepath"),
-            gr.Radio(["Bokmål", "Nynorsk", "English"], label="Output Language", value="Bokmål"),
-            # gr.inputs.Radio(["Verbatim", "Semantic", "Compare"], label="Transcription Style", default="Verbatim"),
-            gr.Checkbox(value=True, label="Return timestamps"),
-        ],
-        outputs=[
-            gr.Video(label="Video", visible=True),
-            gr.Audio(label="Audio", visible=False),
-            gr.Textbox(label="Transcription", show_copy_button=True, show_label=True),
-            gr.Textbox(label="Transcription Time (s)"),
-            gr.File(label="Download"),
-        ],
-        allow_flagging="never",
-        title=title,
-        description=description,
-        article=article,
-    )
+
 
     youtube = gr.Interface(
         fn=transcribe_chunked_audio,
