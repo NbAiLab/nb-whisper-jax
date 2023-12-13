@@ -310,11 +310,11 @@ if __name__ == "__main__":
         logger.info("done post-processing")
 
         if language == "Bokmål":
-            language = "no"
+            language = "<|no|>"
         elif language == "Nynorsk":
-            language = "nn"
+            language = "<|nn|>"
         else:
-            language = "en"
+            language = "<|en|>"
 
         start_time = time.time()
         logger.info(f"Starting task: {task}... language: {language}")
