@@ -182,6 +182,13 @@ class FlaxWhisperPipeline:
             is_multilingual = None
 
         forced_decoder_ids = []
+<<<<<<< HEAD
+=======
+
+        breakpoint()
+        
+        forced_decoder_ids.append((1, generation_config.lang_to_id[language]))
+>>>>>>> 3dff95fd500011a1443c55648775cc251e1325ea
 
         if is_multilingual:
             if language is not None:
@@ -378,8 +385,13 @@ class FlaxWhisperPipeline:
         self,
         model_inputs,
         batch_size=None,
+<<<<<<< HEAD
         language=None,
         task=None,
+=======
+        language="<|no|>",
+        task="transcribe",
+>>>>>>> 3dff95fd500011a1443c55648775cc251e1325ea
         return_timestamps=False,
         num_beams=1,
         length_penalty=1.0,
@@ -394,7 +406,17 @@ class FlaxWhisperPipeline:
         if input_batch_size != batch_size:
             padding = np.zeros([batch_size - input_batch_size, *input_features.shape[1:]], input_features.dtype)
             input_features = np.concatenate([input_features, padding])
+<<<<<<< HEAD
 
+=======
+    
+        # Get forced_decoder_ids based on language and task
+        forced_decoder_ids = model_inputs.get("forced_decoder_ids")
+        if forced_decoder_ids is None:
+            forced_decoder_ids = self.get_forced_decoder_ids(language=language, task=task, return_timestamps=return_timestamps)
+        
+        # Call the generate method with the appropriate arguments
+>>>>>>> 3dff95fd500011a1443c55648775cc251e1325ea
         pred_ids = self.generate(
             input_features,
             language=language,
