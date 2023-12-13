@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright 2023 The HuggingFace Inc. team.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -64,7 +65,6 @@ class FlaxWhisperPipeline:
         dtype=jnp.float32,
         batch_size=None,
         max_length=None,
-        num_beams=1,
         **kwargs,
     ):
         """
@@ -85,7 +85,6 @@ class FlaxWhisperPipeline:
         """
         self.checkpoint = checkpoint
         self.dtype = dtype
-        self.num_beams = num_beams
 
         self.feature_extractor = FlaxWhisperFeatureExtractor.from_pretrained(self.checkpoint)
         self.tokenizer = WhisperTokenizerFast.from_pretrained(self.checkpoint)
@@ -103,20 +102,9 @@ class FlaxWhisperPipeline:
             batch_size if batch_size is not None else self.min_batch_size
         )  # we need a minimum of 1 batch per-device
 
-    def generate(
-        self,
-        input_features,
-        forced_decoder_ids,
-        return_timestamps,
-        num_beams,
-        length_penalty,
-        do_sample,
-        top_k,
-        temperature,
-    ):
-        output_ids = self.p_generate(
-            freeze(self.params),
-            shard(input_features),
+        def generate(
+            params,
+            input_features,
             forced_decoder_ids,
             return_timestamps,
             num_beams,
@@ -124,10 +112,20 @@ class FlaxWhisperPipeline:
             do_sample,
             top_k,
             temperature,
-        ).sequences
-        output_ids = jax.device_get(output_ids.reshape(-1, self.max_length))
-        return output_ids
-
+        ):
+            output_ids = self.model.pipeline_generate(
+                input_features,
+                params=params,
+                forced_decoder_ids=forced_decoder_ids,
+                return_timestamps=return_timestamps,
+                max_length=self.max_length,
+                num_beams=num_beams,
+                length_penalty=length_penalty,
+                do_sample=do_sample,
+                top_k=top_k,
+                temperature=temperature,
+            )
+            return output_ids
 
         self.params = jax_utils.replicate(self.params)
         self.p_generate = jax.pmap(
@@ -147,8 +145,8 @@ class FlaxWhisperPipeline:
     def generate(
         self,
         input_features,
-        language="<|no|>",
-        task="transcribe",
+        language=None,
+        task=None,
         return_timestamps=False,
         num_beams=1,
         length_penalty=1.0,
@@ -174,15 +172,45 @@ class FlaxWhisperPipeline:
         output_ids = jax.device_get(output_ids.reshape(-1, self.max_length))
         return output_ids
 
-    def get_forced_decoder_ids(self, generation_config=None, task="transcribe", language="<|no|>", return_timestamps=False):
+    def get_forced_decoder_ids(self, generation_config=None, task=None, language=None, return_timestamps=False):
         if generation_config is None:
             generation_config = self.model.generation_config
-        
-        forced_decoder_ids = []
-        
-        forced_decoder_ids.append((1, generation_config.lang_to_id[language]))
 
-        forced_decoder_ids.append((2, generation_config.task_to_id[task]))
+        if hasattr(generation_config, "is_multilingual"):
+            is_multilingual = generation_config.is_multilingual
+        else:
+            is_multilingual = None
+
+        forced_decoder_ids = []
+
+        if is_multilingual:
+            if language is not None:
+                language = language.lower()
+                if language in generation_config.lang_to_id.keys():
+                    language_token = language
+                elif language in TO_LANGUAGE_CODE.values():
+                    language_token = f"<|{language}|>"
+                elif language in TO_LANGUAGE_CODE.keys():
+                    language_token = f"<|{TO_LANGUAGE_CODE[language]}|>"
+                else:
+                    if len(language) == 2:
+                        # ISO 639-1 language code
+                        acceptable_languages = list(TO_LANGUAGE_CODE.values())
+                    elif "<" in language or "|" in language or ">" in language:
+                        # generation config language code
+                        acceptable_languages = list(generation_config.lang_to_id.keys())
+                    else:
+                        # language passed as a string
+                        acceptable_languages = list(TO_LANGUAGE_CODE.keys())
+                    raise ValueError(
+                        f"Unsupported language: {language}. Language should be one of:" f" {acceptable_languages}."
+                    )
+                forced_decoder_ids.append((1, generation_config.lang_to_id[language_token]))
+
+            if task is not None:
+                forced_decoder_ids.append((2, generation_config.task_to_id[task]))
+            else:
+                forced_decoder_ids.append((2, generation_config.task_to_id["transcribe"]))
 
         if not return_timestamps:
             if forced_decoder_ids and forced_decoder_ids[-1][0] != generation_config.no_timestamps_token_id:
@@ -350,8 +378,8 @@ class FlaxWhisperPipeline:
         self,
         model_inputs,
         batch_size=None,
-        language="no",
-        task="transcribe",
+        language=None,
+        task=None,
         return_timestamps=False,
         num_beams=1,
         length_penalty=1.0,
@@ -359,39 +387,34 @@ class FlaxWhisperPipeline:
         top_k=50,
         temperature=1.0,
     ):
-        # Extract input features from model inputs
+        # We need to keep track of some additional input arguments for post-processing so need to forward these on after running generation
         input_features = model_inputs.pop("input_features")
         input_batch_size = input_features.shape[0]
-    
-        # Pad input features to match the batch size if necessary
+
         if input_batch_size != batch_size:
-            padding = np.zeros([batch_size - input_batch_size, *input_features.shape[1:]], dtype=input_features.dtype)
+            padding = np.zeros([batch_size - input_batch_size, *input_features.shape[1:]], input_features.dtype)
             input_features = np.concatenate([input_features, padding])
-    
-        # Get forced_decoder_ids based on language and task
-        forced_decoder_ids = self.get_forced_decoder_ids(language=language, task=task, return_timestamps=return_timestamps)
-    
-        # Call the generate method with the appropriate arguments
+
         pred_ids = self.generate(
             input_features,
-            forced_decoder_ids,
-            return_timestamps,
-            num_beams,
-            length_penalty,
-            do_sample,
-            top_k,
-            temperature,
+            language=language,
+            task=task,
+            return_timestamps=return_timestamps,
+            num_beams=num_beams,
+            length_penalty=length_penalty,
+            do_sample=do_sample,
+            top_k=top_k,
+            temperature=temperature,
         )[:input_batch_size]
-    
-        # Format the output
+
+        # tokenizer's decode method expects an extra dim - we insert it here for convenience
         out = {"tokens": pred_ids[:, None, :]}
+
         stride = model_inputs.pop("stride", None)
         if stride is not None:
             out["stride"] = stride
-    
+
         return out
-
-
 
     def __call__(
         self,
@@ -493,6 +516,7 @@ class FlaxWhisperPipeline:
                     language=language,
                     task=task,
                     return_timestamps=return_timestamps,
+                    num_beams=num_beams,
                     length_penalty=length_penalty,
                     do_sample=do_sample,
                     top_k=top_k,
