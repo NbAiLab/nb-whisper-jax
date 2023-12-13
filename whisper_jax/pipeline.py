@@ -170,6 +170,8 @@ class FlaxWhisperPipeline:
             temperature,
         ).sequences
         output_ids = jax.device_get(output_ids.reshape(-1, self.max_length))
+        print(f"Transcribing with num_beams={num_beams}")
+        
         return output_ids
 
     def get_forced_decoder_ids(self, generation_config=None, task=None, language=None, return_timestamps=False):
