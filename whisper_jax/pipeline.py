@@ -148,7 +148,7 @@ class FlaxWhisperPipeline:
         language=None,
         task=None,
         return_timestamps=False,
-        num_beams=1,
+        num_beams=5,
         length_penalty=1.0,
         do_sample=False,
         top_k=50,
