@@ -381,38 +381,42 @@ class FlaxWhisperPipeline:
         language=None,
         task=None,
         return_timestamps=False,
+        num_beams=1,  # Added num_beams here
         length_penalty=1.0,
         do_sample=False,
         top_k=50,
         temperature=1.0,
     ):
-        # We need to keep track of some additional input arguments for post-processing so need to forward these on after running generation
         input_features = model_inputs.pop("input_features")
         input_batch_size = input_features.shape[0]
-
+    
         if input_batch_size != batch_size:
             padding = np.zeros([batch_size - input_batch_size, *input_features.shape[1:]], input_features.dtype)
             input_features = np.concatenate([input_features, padding])
-
+    
+        # Get forced_decoder_ids based on language and task
+        forced_decoder_ids = self.get_forced_decoder_ids(language=language, task=task, return_timestamps=return_timestamps)
+    
+        # Call generate with the correct arguments
         pred_ids = self.generate(
             input_features,
-            language=language,
-            task=task,
-            return_timestamps=return_timestamps,
-            length_penalty=length_penalty,
-            do_sample=do_sample,
-            top_k=top_k,
-            temperature=temperature,
+            forced_decoder_ids,
+            return_timestamps,
+            num_beams,  # Passing num_beams
+            length_penalty,
+            do_sample,
+            top_k,
+            temperature,
         )[:input_batch_size]
-
-        # tokenizer's decode method expects an extra dim - we insert it here for convenience
+    
         out = {"tokens": pred_ids[:, None, :]}
-
+    
         stride = model_inputs.pop("stride", None)
         if stride is not None:
             out["stride"] = stride
-
+    
         return out
+
 
     def __call__(
         self,
