@@ -518,88 +518,46 @@ if __name__ == "__main__":
         return fpath
 
 
-    microphone_chunked = gr.Interface(
-        fn=transcribe_chunked_audio,
-        inputs=[
-            gr.Audio(sources=["microphone"], type="filepath"),
-            gr.Radio(["Bokmål", "Nynorsk", "English"], label="Output language", value="Bokmål"),
-            gr.Checkbox(value=True, label="Return timestamps"),
-        ],
-        outputs=[
-            gr.Video(label="Video", visible=True),
-            gr.Audio(label="Audio", visible=False),
-            gr.Textbox(label="Transcription", show_copy_button=True, show_label=True),
-            gr.Textbox(label="Transcription Time (s)"),
-            gr.File(label="Download")
-        ],
-        allow_flagging="never",
-        title=title,
-        description=description,
-        article=article,
-    )
-
-   audio_chunked = gr.Interface(
-        fn=transcribe_chunked_audio,
-        inputs=[
-            gr.Audio(sources=["upload","microphone"], label="Audio file", type="filepath"),
-            gr.Radio(["Bokmål", "Nynorsk", "English"], label="Output Language", value="Bokmål"),
-            # gr.inputs.Radio(["Verbatim", "Semantic", "Compare"], label="Transcription Style", default="Verbatim"),
-            gr.Checkbox(value=True, label="Return timestamps"),
-        ],
-        outputs=[
-            gr.Video(label="Video", visible=True),
-            gr.Audio(label="Audio", visible=False),
-            gr.Textbox(label="Transcription", show_copy_button=True, show_label=True),
-            gr.Textbox(label="Transcription Time (s)"),
-            gr.File(label="Download"),
-        ],
-        allow_flagging="never",
-        title=title,
-        description=description,
-        article=article,
-    )
-    
-
-    youtube = gr.Interface(
-        fn=transcribe_chunked_audio,
-        inputs=[
-            gr.Textbox(lines=1, placeholder="Paste the URL to a YouTube or Twitter/X video here", label="YouTube or Twitter/X URL"),
-            gr.Radio(["Bokmål", "Nynorsk", "English"], label="Output Language", value="Bokmål"),
-            # gr.inputs.Radio(["Verbatim", "Semantic", "Compare"], label="Transcription Style", default="Semantic"),
-            gr.Checkbox(value=True, label="Return timestamps"),
-            # gr.inputs.Checkbox(default=False, label="Use YouTube player"),
-        ],
-        outputs=[
-            # gr.outputs.HTML(label="Video"),
-            gr.Video(label="Video"),
-            gr.Audio(label="Audio", visible=False),
-            gr.Textbox(label="Transcription", show_copy_button=True, show_label=True),
-            gr.Textbox(label="Transcription Time (s)"),
-            gr.File(label="Download"),
-        ],
-        allow_flagging="never",
-        title=title,
-        examples=[
-            ["https://www.youtube.com/watch?v=_uv74o8hG30", "Bokmål", "Verbatim", True, False],
-            ["https://www.youtube.com/watch?v=YcBWSBRuk0Q", "Bokmål", "Verbatim", True, False],
-            ["https://www.youtube.com/watch?v=vauTloX4HkU", "Bokmål", "Verbatim", True, False],
-            ["https://www.youtube.com/watch?v=WHF74ppqKFQ", "Bokmål", "Verbatim", True, False],
-            ["https://www.youtube.com/watch?v=b8nz4sh_sj4", "Bokmål", "Verbatim", True, False],
-            ["https://www.youtube.com/watch?v=vauTloX4HkU", "Bokmål", "Verbatim", True, False],
-            ["https://www.youtube.com/watch?v=pMesxWW-daA", "Bokmål", "Verbatim", True, False],
-            ["https://www.youtube.com/watch?v=x0Fsn4I54C0", "Bokmål", "Verbatim", True, False]
-            
-        ],
-        cache_examples=False,
-        description=description,
-        article=article,
-    )
-
-    demo = gr.Blocks()
-
-    with demo:
+    with gr.Blocks() as demo:
         gr.Image("nb-logo-full-cropped.png", show_label=False, interactive=False, height=100, container=False)
-        gr.TabbedInterface([audio_chunked, youtube], ["Audio", "YouTube"])
-
+    
+        with gr.Tab("Audio"):
+            with gr.Form():
+                audio_input = gr.Audio(sources=["upload", "microphone"], label="Audio file", type="filepath")
+                language_input = gr.Radio(["Bokmål", "Nynorsk", "English"], label="Output Language", value="Bokmål")
+                timestamps_checkbox = gr.Checkbox(value=True, label="Return timestamps")
+                submit_button = gr.Button("Submit")
+    
+                video_output = gr.Video(label="Video", visible=True)
+                audio_output = gr.Audio(label="Audio", visible=False)
+                transcription_output = gr.Textbox(label="Transcription", show_copy_button=True, show_label=True)
+                transcription_time_output = gr.Textbox(label="Transcription Time (s)")
+                download_output = gr.File(label="Download")
+    
+                submit_button.click(
+                    transcribe_chunked_audio,
+                    inputs=[audio_input, language_input, timestamps_checkbox],
+                    outputs=[video_output, audio_output, transcription_output, transcription_time_output, download_output]
+                )
+    
+        with gr.Tab("YouTube"):
+            with gr.Form():
+                yt_input = gr.Textbox(lines=1, placeholder="Paste the URL to a YouTube or Twitter/X video here", label="YouTube or Twitter/X URL")
+                yt_language_input = gr.Radio(["Bokmål", "Nynorsk", "English"], label="Output Language", value="Bokmål")
+                yt_timestamps_checkbox = gr.Checkbox(value=True, label="Return timestamps")
+                yt_submit_button = gr.Button("Submit")
+    
+                yt_video_output = gr.Video(label="Video")
+                yt_audio_output = gr.Audio(label="Audio", visible=False)
+                yt_transcription_output = gr.Textbox(label="Transcription", show_copy_button=True, show_label=True)
+                yt_transcription_time_output = gr.Textbox(label="Transcription Time (s)")
+                yt_download_output = gr.File(label="Download")
+    
+                yt_submit_button.click(
+                    transcribe_chunked_audio,
+                    inputs=[yt_input, yt_language_input, yt_timestamps_checkbox],
+                    outputs=[yt_video_output, yt_audio_output, yt_transcription_output, yt_transcription_time_output, yt_download_output]
+                )
+    
     demo.queue(max_size=10)
     demo.launch(server_name="0.0.0.0", show_api=True)
