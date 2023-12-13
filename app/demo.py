@@ -549,18 +549,26 @@ if __name__ == "__main__":
         """)
     ])
     
-    # Place the Accordion within a Column layout component
-    inputs_layout = gr.Column([
-        gr.Audio(sources=["upload", "microphone"], label="Audio file", type="filepath"),
-        gr.Radio(["Bokmål", "Nynorsk", "English"], label="Output Language", value="Bokmål"),
-        gr.Checkbox(value=True, label="Return timestamps"),
-        advanced_options
-    ])
+    # Define the advanced options
+    advanced_options = [
+        gr.Slider(minimum=1, maximum=10, step=1, label="Number of Beams", value=3),
+        gr.Slider(minimum=0, maximum=3, step=0.1, label="Temperature", value=1.0),
+        gr.Markdown("""
+            **Advanced Options Help:**
+            - **Number of Beams:** Determines the breadth of the search for the best output sequence.
+            - **Temperature:** Controls randomness in generation.
+        """)
+    ]
     
-    # Define the interface
+    # Define the interface with Accordion for advanced options
     audio_chunked = gr.Interface(
         fn=transcribe_chunked_audio,
-        inputs=inputs_layout,  # Use the layout component as the input
+        inputs=[
+            gr.Audio(sources=["upload", "microphone"], label="Audio file", type="filepath"),
+            gr.Radio(["Bokmål", "Nynorsk", "English"], label="Output Language", value="Bokmål"),
+            gr.Checkbox(value=True, label="Return timestamps"),
+            gr.Accordion(advanced_options, label="Advanced Options")  # Accordion containing advanced options
+        ],
         outputs=[
             gr.Video(label="Video", visible=True),
             gr.Audio(label="Audio", visible=False),
