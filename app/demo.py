@@ -544,18 +544,18 @@ if __name__ == "__main__":
             gr.Audio(sources=["upload", "microphone"], label="Audio file", type="filepath"),
             gr.Radio(["Bokmål", "Nynorsk", "English"], label="Output Language", value="Bokmål"),
             gr.Checkbox(value=True, label="Return timestamps"),
-            gr.Collapse(
-                children=[
-                    gr.Slider(minimum=1, maximum=10, step=1, label="Number of Beams (Advanced)", value=3),
-                    gr.Slider(minimum=0, maximum=3, step=0.1, label="Temperature (Advanced)", value=1.0),
+            gr.Checkbox(label="Show Advanced Options", value=False),
+            gr.Group(
+                [
+                    gr.Slider(minimum=1, maximum=10, step=1, label="Number of Beams", value=3),
+                    gr.Slider(minimum=0, maximum=3, step=0.1, label="Temperature", value=1.0),
                     gr.Markdown("""
                         **Number of Beams:** Determines the breadth of the search for the best output sequence. A higher number generally increases accuracy but requires more computation.
     
                         **Temperature:** Controls randomness in generation. A lower value results in more predictable results, while a higher value encourages diversity and creativity in the output.
                     """)
                 ],
-                label="Show Advanced Options",
-                open=False
+                visible=False  # Initially hidden, controlled by the checkbox above
             )
         ],
         outputs=[
