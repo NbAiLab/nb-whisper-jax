@@ -538,25 +538,24 @@ if __name__ == "__main__":
         article=article,
     )
 
+    advanced_options = gr.Accordion([
+        gr.Slider(minimum=1, maximum=10, step=1, label="Number of Beams", value=3),
+        gr.Slider(minimum=0, maximum=3, step=0.1, label="Temperature", value=1.0),
+        gr.Markdown("""
+            **Advanced Options Help:**
+    
+            - **Number of Beams:** Determines the breadth of the search for the best output sequence. A higher number generally increases accuracy but requires more computation.
+            - **Temperature:** Controls randomness in generation. A lower value results in more predictable results, while a higher value encourages diversity and creativity in the output.
+        """)
+    ], label="Advanced Options")
+    
     audio_chunked = gr.Interface(
         fn=transcribe_chunked_audio,
         inputs=[
             gr.Audio(sources=["upload", "microphone"], label="Audio file", type="filepath"),
             gr.Radio(["Bokmål", "Nynorsk", "English"], label="Output Language", value="Bokmål"),
             gr.Checkbox(value=True, label="Return timestamps"),
-            gr.Checkbox(label="Show Advanced Options", value=False),
-            gr.Group(
-                [
-                    gr.Slider(minimum=1, maximum=10, step=1, label="Number of Beams", value=3),
-                    gr.Slider(minimum=0, maximum=3, step=0.1, label="Temperature", value=1.0),
-                    gr.Markdown("""
-                        **Number of Beams:** Determines the breadth of the search for the best output sequence. A higher number generally increases accuracy but requires more computation.
-    
-                        **Temperature:** Controls randomness in generation. A lower value results in more predictable results, while a higher value encourages diversity and creativity in the output.
-                    """)
-                ],
-                visible=False  # Initially hidden, controlled by the checkbox above
-            )
+            advanced_options
         ],
         outputs=[
             gr.Video(label="Video", visible=True),
