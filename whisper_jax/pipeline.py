@@ -1,4 +1,4 @@
-# Copyright 2023 The HuggingFace Inc. team.
+or# Copyright 2023 The HuggingFace Inc. team.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -371,10 +371,9 @@ class FlaxWhisperPipeline:
             input_features = np.concatenate([input_features, padding])
     
         # Get forced_decoder_ids based on language and task
-        print(f"Before the forward language = {language}")
-        forced_decoder_ids = self.get_forced_decoder_ids(language=language, task=task, return_timestamps=return_timestamps)
-        print(f"After the forward forced_decoder_ids = {forced_decoder_ids}")
-
+        if forced_decoder_ids is None:
+            forced_decoder_ids = self.get_forced_decoder_ids(language=language, task=task, return_timestamps=return_timestamps)
+        
         # Call the generate method with the appropriate arguments
         pred_ids = self.generate(
             input_features,
