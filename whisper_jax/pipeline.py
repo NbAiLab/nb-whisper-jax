@@ -390,16 +390,19 @@ class FlaxWhisperPipeline:
         top_k=50,
         temperature=1.0,
     ):
+        # Extract input features from model inputs
         input_features = model_inputs.pop("input_features")
         input_batch_size = input_features.shape[0]
     
+        # Pad input features to match the batch size if necessary
         if input_batch_size != batch_size:
-            padding = np.zeros([batch_size - input_batch_size, *input_features.shape[1:]], input_features.dtype)
+            padding = np.zeros([batch_size - input_batch_size, *input_features.shape[1:]], dtype=input_features.dtype)
             input_features = np.concatenate([input_features, padding])
     
         # Get forced_decoder_ids based on language and task
         forced_decoder_ids = self.get_forced_decoder_ids(language=language, task=task, return_timestamps=return_timestamps)
     
+        # Call the generate method with the appropriate arguments
         pred_ids = self.generate(
             input_features,
             forced_decoder_ids,
@@ -411,14 +414,13 @@ class FlaxWhisperPipeline:
             temperature,
         )[:input_batch_size]
     
+        # Format the output
         out = {"tokens": pred_ids[:, None, :]}
-    
         stride = model_inputs.pop("stride", None)
         if stride is not None:
             out["stride"] = stride
     
         return out
-
 
 
 
