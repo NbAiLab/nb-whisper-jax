@@ -19,7 +19,7 @@ import base64
 import subprocess
 from typing import Tuple
 
-from whisper_jax import FlaxWhisperPipline
+from whisper_jax import FlaxWhisperPipeline
 
 cc.initialize_cache("./jax_cache")
 
@@ -273,7 +273,7 @@ def format_timestamp(seconds: float, always_include_hours: bool = True, decimal_
 
 
 if __name__ == "__main__":
-    pipeline = FlaxWhisperPipline(checkpoint, dtype=jnp.bfloat16, batch_size=BATCH_SIZE)
+    pipeline = FlaxWhisperPipeline(checkpoint, dtype=jnp.bfloat16, batch_size=BATCH_SIZE)
     stride_length_s = CHUNK_LENGTH_S / 6
     chunk_len = round(CHUNK_LENGTH_S * pipeline.feature_extractor.sampling_rate)
     stride_left = stride_right = round(stride_length_s * pipeline.feature_extractor.sampling_rate)
