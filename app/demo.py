@@ -562,33 +562,23 @@ if __name__ == "__main__":
     
     import gradio as gr
 
-    def transcribe_chunked_audio_with_options(file, language, return_timestamps, show_advanced, num_beams, temperature):
-        # Use num_beams and temperature only if show_advanced is True
-        if show_advanced:
-            # Your logic to handle num_beams and temperature
-            pass
-    
-        # Assuming 'transcribe_chunked_audio' is your existing function
-        return transcribe_chunked_audio(file, language, return_timestamps)
-    
+
     audio_chunked_inputs = [
         gr.Audio(sources=["upload", "microphone"], label="Audio file", type="filepath"),
         gr.Radio(["Bokmål", "Nynorsk", "English"], label="Output Language", value="Bokmål"),
         gr.Checkbox(value=True, label="Return timestamps"),
-        gr.Checkbox(label="Show advanced options", value=False)
     ]
     
-    advanced_options = gr.Collapsible(
-        children=[
+    advanced_options = gr.Accordion(
+        [
             gr.Slider(minimum=1, maximum=10, step=1, label="Number of Beams", value=3),
             gr.Slider(minimum=0, maximum=3, step=0.1, label="Temperature", value=1.0)
         ],
-        open=False,
         label="Advanced Options"
     )
     
     audio_chunked = gr.Interface(
-        fn=transcribe_chunked_audio_with_options,
+        fn=transcribe_chunked_audio,
         inputs=audio_chunked_inputs + [advanced_options],
         outputs=[
             gr.Video(label="Video", visible=True),
