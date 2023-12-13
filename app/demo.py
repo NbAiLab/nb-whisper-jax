@@ -538,30 +538,34 @@ if __name__ == "__main__":
         article=article,
     )
     
-    audio_chunked_inputs = [
+    # Advanced options inside an Accordion
+    advanced_options = gr.Accordion([
+        gr.Slider(minimum=1, maximum=10, step=1, label="Number of Beams", value=3),
+        gr.Slider(minimum=0, maximum=3, step=0.1, label="Temperature", value=1.0)
+    ], label="Advanced Options", open=False)  # 'open=False' ensures it's collapsed by default
+    
+    # Define inputs including the Accordion
+    inputs = [
         gr.Audio(sources=["upload", "microphone"], label="Audio file", type="filepath"),
         gr.Radio(["Bokmål", "Nynorsk", "English"], label="Output Language", value="Bokmål"),
         gr.Checkbox(value=True, label="Return timestamps"),
+        advanced_options
     ]
     
-    advanced_options = gr.Accordion(
-        [
-            gr.Slider(minimum=1, maximum=10, step=1, label="Number of Beams", value=3),
-            gr.Slider(minimum=0, maximum=3, step=0.1, label="Temperature", value=1.0)
-        ],
-        label="Advanced Options"
-    )
+    # Define outputs
+    outputs = [
+        gr.Video(label="Video", visible=True),
+        gr.Audio(label="Audio", visible=False),
+        gr.Textbox(label="Transcription", show_copy_button=True, show_label=True),
+        gr.Textbox(label="Transcription Time (s)"),
+        gr.File(label="Download")
+    ]
     
+    # Create the Interface
     audio_chunked = gr.Interface(
         fn=transcribe_chunked_audio,
-        inputs=audio_chunked_inputs + [advanced_options],
-        outputs=[
-            gr.Video(label="Video", visible=True),
-            gr.Audio(label="Audio", visible=False),
-            gr.Textbox(label="Transcription", show_copy_button=True, show_label=True),
-            gr.Textbox(label="Transcription Time (s)"),
-            gr.File(label="Download")
-        ],
+        inputs=inputs,
+        outputs=outputs,
         allow_flagging="never",
         title=title,
         description=description,
