@@ -179,6 +179,8 @@ class FlaxWhisperPipeline:
             generation_config = self.model.generation_config
         
         forced_decoder_ids = []
+
+        breakpoint()
         
         forced_decoder_ids.append((1, generation_config.lang_to_id[language]))
 
