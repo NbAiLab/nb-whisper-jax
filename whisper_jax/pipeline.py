@@ -94,6 +94,10 @@ class FlaxWhisperPipline:
         self.batch_size = (
             batch_size if batch_size is not None else self.min_batch_size
         )  # we need a minimum of 1 batch per-device
+        
+
+        print("XXX")
+        exit(-1)
 
         def generate(params, input_features, forced_decoder_ids, return_timestamps):
             output_ids = self.model.pipeline_generate(
