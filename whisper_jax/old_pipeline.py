@@ -1,4 +1,5 @@
-opyright 2023 The HuggingFace Inc. team.
+# coding=utf-8
+# Copyright 2023 The HuggingFace Inc. team.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +13,6 @@ opyright 2023 The HuggingFace Inc. team.
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-"""Whisper JAX pipeline compatible with Distil Whisper checkpoints. Copied from https://github.com/sanchit-gandhi/whisper-jax/blob/main/whisper_jax/pipeline.py"""
 
 import math
 
@@ -20,51 +20,45 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 import requests
-import torch
 from flax import jax_utils
 from flax.core.frozen_dict import freeze
 from flax.training.common_utils import shard
-from transformers import WhisperFeatureExtractor, WhisperTokenizerFast
+from jax.sharding import PartitionSpec as P
+from transformers import WhisperProcessor
 from transformers.models.whisper.tokenization_whisper import TO_LANGUAGE_CODE
 from transformers.pipelines.audio_utils import ffmpeg_read
 from transformers.utils import logging
 
 from .modeling_flax_whisper import FlaxWhisperForConditionalGeneration
+from .partitioner import PjitPartitioner
+from .train_state import InferenceState
 
 
 logger = logging.get_logger(__name__)
 
-
-class FlaxWhisperFeatureExtractor(WhisperFeatureExtractor):
-    def _np_extract_fbank_features(self, waveform: np.array) -> np.ndarray:
-        """
-        Compute the log-mel spectrogram of the provided audio using torch filters. Using the torch implementation
-        computes stft filter banks approx 5x faster than its numpy counterpart, which is the native implementation
-        in transformers, and matches to within 1e-5 abs tolerance.
-        """
-        waveform = torch.from_numpy(waveform).type(torch.float32)
-
-        window = torch.hann_window(self.n_fft)
-        stft = torch.stft(waveform, self.n_fft, self.hop_length, window=window, return_complex=True)
-        magnitudes = stft[..., :-1].abs() ** 2
-
-        mel_filters = torch.from_numpy(self.mel_filters).type(torch.float32)
-        mel_spec = mel_filters.T @ magnitudes
-
-        log_spec = torch.clamp(mel_spec, min=1e-10).log10()
-        log_spec = torch.maximum(log_spec, log_spec.max() - 8.0)
-        log_spec = (log_spec + 4.0) / 4.0
-        return log_spec.numpy()
+# 2D parameter and activation partitioning for DP
+logical_axis_rules_dp = (
+    ("batch", "data"),
+    ("mlp", None),
+    ("heads", None),
+    ("vocab", None),
+    ("embed", None),
+    ("embed", None),
+    ("joined_kv", None),
+    ("kv", None),
+    ("length", None),
+    ("num_mel", None),
+    ("channels", None),
+)
 
 
-class FlaxWhisperPipeline:
+class FlaxWhisperPipline:
     def __init__(
         self,
         checkpoint="openai/whisper-large-v2",
         dtype=jnp.float32,
         batch_size=None,
         max_length=None,
-        **kwargs,
     ):
         """
         Args
@@ -85,14 +79,14 @@ class FlaxWhisperPipeline:
         self.checkpoint = checkpoint
         self.dtype = dtype
 
-        self.feature_extractor = FlaxWhisperFeatureExtractor.from_pretrained(self.checkpoint)
-        self.tokenizer = WhisperTokenizerFast.from_pretrained(self.checkpoint)
+        self.processor = WhisperProcessor.from_pretrained(self.checkpoint)
+        self.feature_extractor = self.processor.feature_extractor
+        self.tokenizer = self.processor.tokenizer
 
         self.model, self.params = FlaxWhisperForConditionalGeneration.from_pretrained(
             self.checkpoint,
             _do_init=False,
             dtype=self.dtype,
-            **kwargs,
         )
 
         self.max_length = max_length if max_length is not None else self.model.generation_config.max_length
@@ -100,75 +94,107 @@ class FlaxWhisperPipeline:
         self.batch_size = (
             batch_size if batch_size is not None else self.min_batch_size
         )  # we need a minimum of 1 batch per-device
+        
 
-        def generate(
-            params,
-            input_features,
-            forced_decoder_ids,
-            return_timestamps,
-            num_beams,
-            length_penalty,
-            do_sample,
-            top_k,
-            temperature,
-        ):
+        def generate(params, input_features, forced_decoder_ids, return_timestamps):
             output_ids = self.model.pipeline_generate(
                 input_features,
                 params=params,
                 forced_decoder_ids=forced_decoder_ids,
                 return_timestamps=return_timestamps,
                 max_length=self.max_length,
-                num_beams=num_beams,
-                length_penalty=length_penalty,
-                do_sample=do_sample,
-                top_k=top_k,
-                temperature=temperature,
             )
             return output_ids
 
+        # use pmap for DP by default - this is compatible on a Colab TPU v2
         self.params = jax_utils.replicate(self.params)
         self.p_generate = jax.pmap(
-            generate,
-            "input_features",
-            in_axes=(0, 0, None, None, None, None, None, None, None),
-            static_broadcasted_argnums=(
-                3,
-                4,
-                5,
-                6,
-                7,
-                8,
-            ),
+            generate, "input_features", in_axes=(0, 0, None), out_axes=0, static_broadcasted_argnums=(3,)
+        )
+        self.is_sharded = False
+
+    def shard_params(self, num_mp_partitions=1, logical_axis_rules=logical_axis_rules_dp):
+        def init_fn():
+            input_shape = (1, self.model.config.num_mel_bins, 2 * self.model.config.max_source_positions)
+
+            input_features = jnp.zeros(input_shape, dtype="f4")
+            input_features = input_features.at[(..., -1)].set(self.model.config.eos_token_id)
+
+            decoder_input_ids = jnp.zeros((input_shape[0], 1), dtype="i4")
+            decoder_attention_mask = jnp.ones_like(decoder_input_ids)
+
+            batch_size, sequence_length = decoder_input_ids.shape
+            decoder_position_ids = jnp.broadcast_to(
+                jnp.arange(sequence_length)[None, :], (batch_size, sequence_length)
+            )
+
+            rng = jax.random.PRNGKey(0)
+            init_params = self.model.module.init(
+                rng,
+                input_features=input_features,
+                decoder_input_ids=decoder_input_ids,
+                decoder_attention_mask=decoder_attention_mask,
+                decoder_position_ids=decoder_position_ids,
+                return_dict=False,
+            )
+            return init_params
+
+        # Axis names metadata
+        param_axes = jax.eval_shape(init_fn)["params_axes"]
+
+        # Create InferenceState, since the partitioner expects it
+        state = InferenceState(
+            step=jnp.array(0),
+            params=freeze(self.model.params_shape_tree),
+            params_axes=freeze(param_axes),
+            flax_mutables=None,
+            flax_mutables_axes=param_axes,
         )
 
-    def generate(
-        self,
-        input_features,
-        language=None,
-        task=None,
-        return_timestamps=False,
-        num_beams=1,
-        length_penalty=1.0,
-        do_sample=False,
-        top_k=50,
-        temperature=1.0,
-    ):
+        partitioner = PjitPartitioner(num_partitions=num_mp_partitions, logical_axis_rules=logical_axis_rules)
+
+        mesh_axes = partitioner.get_mesh_axes(state)
+        params_spec = mesh_axes.params
+
+        p_shard_params = partitioner.partition(self.model.to_bf16, (params_spec,), params_spec)
+
+        # This will auto-magically run in mesh context
+        self.params = p_shard_params(freeze(jax_utils.unreplicate(self.params)))
+        self.is_sharded = True
+
+        def generate(params, input_features, forced_decoder_ids, return_timestamps):
+            output_ids = self.model.pipeline_generate(
+                input_features,
+                params=params,
+                forced_decoder_ids=forced_decoder_ids,
+                return_timestamps=return_timestamps,
+                max_length=self.max_length,
+            )
+            return output_ids
+
+        # Use pjit for generate only once we've sharded the params
+        self.p_generate = partitioner.partition(
+            generate,
+            in_axis_resources=(params_spec, P("data"), None),
+            out_axis_resources=P("data"),
+            static_argnums=(3,),
+        )
+
+    def generate(self, input_features, language=None, task=None, return_timestamps=False):
         forced_decoder_ids = self.get_forced_decoder_ids(
             language=language, task=task, return_timestamps=return_timestamps
         )
-        # if we're using pmap we need to manually replicate the input data across devices and gather the output tokens
-        output_ids = self.p_generate(
-            freeze(self.params),
-            shard(input_features),
-            forced_decoder_ids,
-            return_timestamps,
-            num_beams,
-            length_penalty,
-            do_sample,
-            top_k,
-            temperature,
-        ).sequences
-        output_ids = jax.device_get(output_ids.reshape(-1, self.max_length))
+        if not self.is_sharded:
+            # if we're using pmap we need to manually replicate the input data across devices and gather the output tokens
+            output_ids = self.p_generate(
+                freeze(self.params), shard(input_features), forced_decoder_ids, return_timestamps
+            ).sequences
+            output_ids = jax.device_get(output_ids.reshape(-1, self.max_length))
+        else:
+            # pjit handles replication / gathering for us auto-magically
+            output_ids = self.p_generate(
+                freeze(self.params), input_features, forced_decoder_ids, return_timestamps
+            ).sequences
         return output_ids
 
     def get_forced_decoder_ids(self, generation_config=None, task=None, language=None, return_timestamps=False):
@@ -215,8 +241,6 @@ class FlaxWhisperPipeline:
             if forced_decoder_ids and forced_decoder_ids[-1][0] != generation_config.no_timestamps_token_id:
                 idx = forced_decoder_ids[-1][0] + 1 if forced_decoder_ids else 1
                 forced_decoder_ids.append((idx, generation_config.no_timestamps_token_id))
-            else:
-                forced_decoder_ids.append((1, generation_config.no_timestamps_token_id))
 
         return forced_decoder_ids
 
@@ -230,7 +254,7 @@ class FlaxWhisperPipeline:
         num_batches = math.ceil(num_samples / batch_size)
         batch_idx = np.array_split(np.arange(num_samples), num_batches)
 
-        for idx in batch_idx:
+        for i, idx in enumerate(batch_idx):
             chunk_start_idx = all_chunk_start_idx[idx]
 
             chunk_end_idx = chunk_start_idx + chunk_len
@@ -373,19 +397,7 @@ class FlaxWhisperPipeline:
         )
         return {"text": text, **optional}
 
-    def forward(
-        self,
-        model_inputs,
-        batch_size=None,
-        language=None,
-        task=None,
-        return_timestamps=False,
-        num_beams=1,
-        length_penalty=1.0,
-        do_sample=False,
-        top_k=50,
-        temperature=1.0,
-    ):
+    def forward(self, model_inputs, batch_size=None, language=None, task=None, return_timestamps=False):
         # We need to keep track of some additional input arguments for post-processing so need to forward these on after running generation
         input_features = model_inputs.pop("input_features")
         input_batch_size = input_features.shape[0]
@@ -394,17 +406,9 @@ class FlaxWhisperPipeline:
             padding = np.zeros([batch_size - input_batch_size, *input_features.shape[1:]], input_features.dtype)
             input_features = np.concatenate([input_features, padding])
 
-        pred_ids = self.generate(
-            input_features,
-            language=language,
-            task=task,
-            return_timestamps=return_timestamps,
-            num_beams=num_beams,
-            length_penalty=length_penalty,
-            do_sample=do_sample,
-            top_k=top_k,
-            temperature=temperature,
-        )[:input_batch_size]
+        pred_ids = self.generate(input_features, language=language, task=task, return_timestamps=return_timestamps)[
+            :input_batch_size
+        ]
 
         # tokenizer's decode method expects an extra dim - we insert it here for convenience
         out = {"tokens": pred_ids[:, None, :]}
@@ -424,11 +428,7 @@ class FlaxWhisperPipeline:
         language=None,
         task=None,
         return_timestamps=None,
-        num_beams=1,
-        length_penalty=1.0,
-        do_sample=False,
-        top_k=50,
-        temperature=1.0,
+        generate_kwargs=None,
     ):
         """
         Transcribe an audio input sequence to a text transcription, optionally with timestamps.
@@ -475,17 +475,6 @@ class FlaxWhisperPipeline:
                 Whether to return timestamps in the prediction. Defaults to False. If set to true, the pipeline
                 will return two keys in the output dictionary: `"text"` containing the text transcription, and `"chunks"`
                 containing the transcription segments chunked by their utterance-level timestamps.
-            length_penalty (*optional*, `float`):
-                Exponential penalty to the length that is used with beam-based generation. It is applied as an
-                exponent to the sequence length, which in turn is used to divide the score of the sequence. Since
-                the score is the log likelihood of the sequence (i.e. negative), length_penalty > 1.0 promotes
-                longer sequences, while length_penalty < 1.0 encourages shorter sequences.
-            do_sample (*optional*, `bool`):
-                Whether or not to use sampling ; use greedy decoding otherwise.
-            top_k (*optional*, `int`):
-                The number of the highest probability vocabulary tokens to keep for top-k-filtering.
-            temperature (*optional*, `float`):
-                The value used to modulate the next token probabilities if sampling.
 
         Return:
             `Dict`: A dictionary with the following keys:
@@ -510,16 +499,7 @@ class FlaxWhisperPipeline:
         for batch in dataloader:
             model_outputs.append(
                 self.forward(
-                    batch,
-                    batch_size=batch_size,
-                    language=language,
-                    task=task,
-                    return_timestamps=return_timestamps,
-                    num_beams=num_beams,
-                    length_penalty=length_penalty,
-                    do_sample=do_sample,
-                    top_k=top_k,
-                    temperature=temperature,
+                    batch, batch_size=batch_size, language=language, task=task, return_timestamps=return_timestamps
                 )
             )
         post_processed = self.postprocess(model_outputs, return_timestamps=return_timestamps)
