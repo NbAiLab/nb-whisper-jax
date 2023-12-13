@@ -147,8 +147,8 @@ class FlaxWhisperPipeline:
     def generate(
         self,
         input_features,
-        language=None,
-        task=None,
+        language="no",
+        task="transcribe",
         return_timestamps=False,
         num_beams=1,
         length_penalty=1.0,
@@ -174,7 +174,7 @@ class FlaxWhisperPipeline:
         output_ids = jax.device_get(output_ids.reshape(-1, self.max_length))
         return output_ids
 
-    def get_forced_decoder_ids(self, generation_config=None, task=None, language=None, return_timestamps=False):
+    def get_forced_decoder_ids(self, generation_config=None, task="transcribe", language="no", return_timestamps=False):
         if generation_config is None:
             generation_config = self.model.generation_config
         
@@ -350,8 +350,8 @@ class FlaxWhisperPipeline:
         self,
         model_inputs,
         batch_size=None,
-        language=None,
-        task=None,
+        language="no",
+        task="transcribe",
         return_timestamps=False,
         num_beams=1,
         length_penalty=1.0,
