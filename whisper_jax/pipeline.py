@@ -350,7 +350,7 @@ class FlaxWhisperPipeline:
         self,
         model_inputs,
         batch_size=None,
-        language="no",
+        language="<|no|>",
         task="transcribe",
         return_timestamps=False,
         num_beams=1,
