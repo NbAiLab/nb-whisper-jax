@@ -103,29 +103,31 @@ class FlaxWhisperPipeline:
             batch_size if batch_size is not None else self.min_batch_size
         )  # we need a minimum of 1 batch per-device
 
-        def generate(
-            params,
-            input_features,
+    def generate(
+        self,
+        input_features,
+        forced_decoder_ids,
+        return_timestamps,
+        num_beams,
+        length_penalty,
+        do_sample,
+        top_k,
+        temperature,
+    ):
+        output_ids = self.p_generate(
+            freeze(self.params),
+            shard(input_features),
             forced_decoder_ids,
             return_timestamps,
+            num_beams,
             length_penalty,
             do_sample,
             top_k,
             temperature,
-        ):
-            output_ids = self.model.pipeline_generate(
-                input_features,
-                params=params,
-                forced_decoder_ids=forced_decoder_ids,
-                return_timestamps=return_timestamps,
-                max_length=self.max_length,
-                num_beams=self.num_beams,
-                length_penalty=length_penalty,
-                do_sample=do_sample,
-                top_k=top_k,
-                temperature=temperature,
-            )
-            return output_ids
+        ).sequences
+        output_ids = jax.device_get(output_ids.reshape(-1, self.max_length))
+        return output_ids
+
 
         self.params = jax_utils.replicate(self.params)
         self.p_generate = jax.pmap(
@@ -379,7 +381,7 @@ class FlaxWhisperPipeline:
         self,
         model_inputs,
         batch_size=None,
-        language=None,  # This should be a string
+        language=None,
         task=None,
         return_timestamps=False,
         num_beams=1,
@@ -394,10 +396,6 @@ class FlaxWhisperPipeline:
         if input_batch_size != batch_size:
             padding = np.zeros([batch_size - input_batch_size, *input_features.shape[1:]], input_features.dtype)
             input_features = np.concatenate([input_features, padding])
-    
-        # Ensure language is a string
-        if language is not None and not isinstance(language, str):
-            raise ValueError("language parameter must be a string")
     
         # Get forced_decoder_ids based on language and task
         forced_decoder_ids = self.get_forced_decoder_ids(language=language, task=task, return_timestamps=return_timestamps)
@@ -420,6 +418,7 @@ class FlaxWhisperPipeline:
             out["stride"] = stride
     
         return out
+
 
 
 
