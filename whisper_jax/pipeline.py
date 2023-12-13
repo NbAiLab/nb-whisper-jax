@@ -171,7 +171,6 @@ class FlaxWhisperPipeline:
         ).sequences
         output_ids = jax.device_get(output_ids.reshape(-1, self.max_length))
         print(f"Transcribing with language={language},task={task},num_beams={num_beams},length_penalty={length_penalty},top_k={top_k},temperature={temperature}")
-        return out
         
         return output_ids
 
