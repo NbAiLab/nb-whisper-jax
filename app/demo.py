@@ -537,26 +537,30 @@ if __name__ == "__main__":
         description=description,
         article=article,
     )
-
+    
+    # Define the advanced options within an Accordion
     advanced_options = gr.Accordion([
         gr.Slider(minimum=1, maximum=10, step=1, label="Number of Beams", value=3),
         gr.Slider(minimum=0, maximum=3, step=0.1, label="Temperature", value=1.0),
         gr.Markdown("""
             **Advanced Options Help:**
-    
             - **Number of Beams:** Determines the breadth of the search for the best output sequence. A higher number generally increases accuracy but requires more computation.
             - **Temperature:** Controls randomness in generation. A lower value results in more predictable results, while a higher value encourages diversity and creativity in the output.
         """)
-    ], label="Advanced Options")
+    ])
     
+    # Place the Accordion within a Column layout component
+    inputs_layout = gr.Column([
+        gr.Audio(sources=["upload", "microphone"], label="Audio file", type="filepath"),
+        gr.Radio(["Bokmål", "Nynorsk", "English"], label="Output Language", value="Bokmål"),
+        gr.Checkbox(value=True, label="Return timestamps"),
+        advanced_options
+    ])
+    
+    # Define the interface
     audio_chunked = gr.Interface(
         fn=transcribe_chunked_audio,
-        inputs=[
-            gr.Audio(sources=["upload", "microphone"], label="Audio file", type="filepath"),
-            gr.Radio(["Bokmål", "Nynorsk", "English"], label="Output Language", value="Bokmål"),
-            gr.Checkbox(value=True, label="Return timestamps"),
-            advanced_options
-        ],
+        inputs=inputs_layout,  # Use the layout component as the input
         outputs=[
             gr.Video(label="Video", visible=True),
             gr.Audio(label="Audio", visible=False),
@@ -567,10 +571,8 @@ if __name__ == "__main__":
         allow_flagging="never",
         title=title,
         description=description,
-        article=article,
+        article=article
     )
-
-
     youtube = gr.Interface(
         fn=transcribe_chunked_audio,
         inputs=[
