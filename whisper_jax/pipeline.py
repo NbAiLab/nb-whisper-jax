@@ -64,6 +64,7 @@ class FlaxWhisperPipeline:
         dtype=jnp.float32,
         batch_size=None,
         max_length=None,
+        num_beams=1,
         **kwargs,
     ):
         """
@@ -84,6 +85,7 @@ class FlaxWhisperPipeline:
         """
         self.checkpoint = checkpoint
         self.dtype = dtype
+        self.num_beams = num_beams
 
         self.feature_extractor = FlaxWhisperFeatureExtractor.from_pretrained(self.checkpoint)
         self.tokenizer = WhisperTokenizerFast.from_pretrained(self.checkpoint)
@@ -106,7 +108,6 @@ class FlaxWhisperPipeline:
             input_features,
             forced_decoder_ids,
             return_timestamps,
-            num_beams,
             length_penalty,
             do_sample,
             top_k,
@@ -118,7 +119,7 @@ class FlaxWhisperPipeline:
                 forced_decoder_ids=forced_decoder_ids,
                 return_timestamps=return_timestamps,
                 max_length=self.max_length,
-                num_beams=num_beams,
+                num_beams=self.num_beams,
                 length_penalty=length_penalty,
                 do_sample=do_sample,
                 top_k=top_k,
