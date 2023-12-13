@@ -378,10 +378,10 @@ class FlaxWhisperPipeline:
         self,
         model_inputs,
         batch_size=None,
-        language=None,
+        language=None,  # This should be a string
         task=None,
         return_timestamps=False,
-        num_beams=1,  # Added num_beams here
+        num_beams=1,
         length_penalty=1.0,
         do_sample=False,
         top_k=50,
@@ -394,15 +394,18 @@ class FlaxWhisperPipeline:
             padding = np.zeros([batch_size - input_batch_size, *input_features.shape[1:]], input_features.dtype)
             input_features = np.concatenate([input_features, padding])
     
+        # Ensure language is a string
+        if language is not None and not isinstance(language, str):
+            raise ValueError("language parameter must be a string")
+    
         # Get forced_decoder_ids based on language and task
         forced_decoder_ids = self.get_forced_decoder_ids(language=language, task=task, return_timestamps=return_timestamps)
     
-        # Call generate with the correct arguments
         pred_ids = self.generate(
             input_features,
             forced_decoder_ids,
             return_timestamps,
-            num_beams,  # Passing num_beams
+            num_beams,
             length_penalty,
             do_sample,
             top_k,
@@ -416,6 +419,7 @@ class FlaxWhisperPipeline:
             out["stride"] = stride
     
         return out
+
 
 
     def __call__(
