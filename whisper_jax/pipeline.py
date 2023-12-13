@@ -371,6 +371,7 @@ class FlaxWhisperPipeline:
             input_features = np.concatenate([input_features, padding])
     
         # Get forced_decoder_ids based on language and task
+        forced_decoder_ids = model_inputs.get("forced_decoder_ids")
         if forced_decoder_ids is None:
             forced_decoder_ids = self.get_forced_decoder_ids(language=language, task=task, return_timestamps=return_timestamps)
         
