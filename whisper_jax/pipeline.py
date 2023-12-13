@@ -185,6 +185,7 @@ class FlaxWhisperPipeline:
 
         if is_multilingual:
             if language is not None:
+                print(language)
                 language = language.lower()
                 if language in generation_config.lang_to_id.keys():
                     language_token = language
