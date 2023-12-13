@@ -542,13 +542,11 @@ if __name__ == "__main__":
     num_beams_slider = gr.Slider(minimum=1, maximum=10, step=1, label="Number of Beams", value=3)
     temperature_slider = gr.Slider(minimum=0, maximum=3, step=0.1, label="Temperature", value=1.0)
     
-    # Advanced options inside an Accordion, wrapped in a Group
-    advanced_options = gr.Group(
-        [gr.Accordion(
-            items=[gr.Row([num_beams_slider, temperature_slider])],
-            open=False,
-            label="Advanced Options"
-        )]
+    # Advanced options inside an Accordion
+    advanced_options = gr.Accordion(
+        gr.Row([num_beams_slider, temperature_slider]),
+        open=False,
+        label="Advanced Options"
     )
     
     # Define your Gradio interfaces
@@ -558,7 +556,7 @@ if __name__ == "__main__":
             gr.Audio(sources=["upload", "microphone"], label="Audio file", type="filepath"),
             gr.Radio(["Bokmål", "Nynorsk", "English"], label="Output Language", value="Bokmål"),
             gr.Checkbox(value=True, label="Return timestamps"),
-            advanced_options  # Add the wrapped Accordion here
+            advanced_options  # Add the Accordion here
         ],
         outputs=[
             gr.Video(label="Video", visible=True),
