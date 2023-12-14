@@ -530,8 +530,9 @@ def clear(audio, language, timestamps_checkbox, num_beams, length_penalty, top_k
     return None, "Bokmål", True, 1, 1.0, 50, 1.0, 28, ""
 
 
-with gr.Blocks(title=title, description=description, article=article) as demo:
+with gr.Blocks() as demo:
     gr.Image("nb-logo-full-cropped.png", show_label=False, interactive=False, height=100, container=False)
+    gr.Markdown(title)
     with gr.Tab("Audio"):
         with gr.Row():
             with gr.Column():
@@ -603,6 +604,7 @@ with gr.Blocks(title=title, description=description, article=article) as demo:
                 inputs=[yt_input, yt_language_input, yt_timestamps_checkbox, num_beams_slider2, length_penalty_slider2, top_k_slider2, temperature_slider2, chunk_length_slider2],
                 outputs=[yt_video_output,yt_transcription_output,yt_transcription_output,yt_transcription_time_output,yt_download_output]
             )
+    gr.Markdown(description)
 
 demo.queue(max_size=10)
 demo.launch()
