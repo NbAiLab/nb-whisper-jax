@@ -295,7 +295,7 @@ if __name__ == "__main__":
     logger.info(f"compiled in {compile_time}s")
 
 
-    def tqdm_generate(inputs: dict, language: str, task: str, return_timestamps: bool, progress: gr.Progress) -> Tuple[
+    def tqdm_generate(inputs: dict, language: str, task: str, return_timestamps: bool, num_beams=1,length_penalty=1.0, top_k=50, temperature=1.0, progress: gr.Progress) -> Tuple[
         str, float]:
         inputs_len = inputs["array"].shape[0]
         all_chunk_start_idx = np.arange(0, inputs_len, step)
@@ -324,9 +324,21 @@ if __name__ == "__main__":
         # Verbatim (transcribe) loop
         if task in ["Verbatim", "Compare"]:
             for batch, _ in zip(dataloader, progress.tqdm(dummy_batches, desc="Transcribing...")):
+                if temperature != 1.0 or top_k != 50:
+                    do_sample = True
+                else:
+                    do_sample = False
+
+                if num_beams == 1:
+                    length_penalty = 1.0
+                
+                    verbatim_outputs.append(
+                        pipeline.forward(batch, batch_size=BATCH_SIZE, task="transcribe", language=language,
+                                         num_beams=num_beams,length_penalty=length_penalty, top_k=top_k, temperature=temperature, do_sample=do_sample,return_timestamps=return_timestamps)
+                    )
                 verbatim_outputs.append(
                     pipeline.forward(batch, batch_size=BATCH_SIZE, task="transcribe", language=language,
-                                     num_beams=1,length_penalty=1.1, top_k=49, temperature=1.1, do_sample=True,return_timestamps=return_timestamps)
+                                     num_beams=num_beams,length_penalty=length_penalty, top_k=top_k, temperature=temperature, do_sample=True,return_timestamps=return_timestamps)
                 )
 
         # Semantic (translate) loop
@@ -421,12 +433,12 @@ if __name__ == "__main__":
         return transcript_file_path, subtitle_display
 
 
-    def perform_transcription(file_contents, language, task, return_timestamps, progress):
+    def perform_transcription(file_contents, language, task, return_timestamps, num_beams=1,length_penalty=1.0, top_k=50, temperature=1.0, progress):
         inputs = ffmpeg_read(file_contents, pipeline.feature_extractor.sampling_rate)
         inputs = {"array": inputs, "sampling_rate": pipeline.feature_extractor.sampling_rate}
         logger.info("done loading")
 
-        text, runtime = tqdm_generate(inputs, language=language, task=task, return_timestamps=return_timestamps,
+        text, runtime = tqdm_generate(inputs, language=language, task=task, return_timestamps=return_timestamps, num_beams=num_beams,length_penalty=length_penalty, top_k=top_k, temperature=temperature,
                                       progress=progress)
         return text, runtime
 
@@ -434,11 +446,6 @@ if __name__ == "__main__":
 
     def transcribe_chunked_audio(file_or_yt_url, language="Bokmål", return_timestamps=True, num_beams_slider=1, length_penalty_slider=1.0, top_k_slider=50, temperature_slider=1.0, progress=gr.Progress()):
         task = "Verbatim"
-        print(f"num_beams_slider = {num_beams_slider}")
-        print(f"length_penalty_slider = {length_penalty_slider}")
-        print(f"top_k_slider = {top_k_slider}")
-        print(f"temperature_slider = {temperature_slider}")
-
 
         if isinstance(file_or_yt_url, str) and file_or_yt_url.startswith("http"):
             # Handle YouTube URL input
@@ -460,7 +467,7 @@ if __name__ == "__main__":
             raise gr.Error("Invalid input: not a YouTube URL, file upload, or microphone file path.")
 
         # Perform transcription
-        text, runtime = perform_transcription(file_contents, language, task, return_timestamps, progress)
+        text, runtime = perform_transcription(file_contents, language, task, return_timestamps,num_beams_slider,length_penalty_slider, top_k_slider, temperature_slider, progress)
         
         if return_timestamps:
             transcript_file_path, subtitle_display = create_transcript_file(text, file_path, return_timestamps, transcription_style=task)
