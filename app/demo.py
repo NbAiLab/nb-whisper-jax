@@ -431,8 +431,15 @@ if __name__ == "__main__":
         return text, runtime
 
 
-    def transcribe_chunked_audio(file_or_yt_url, language="Bokmål", return_timestamps=True, progress=gr.Progress()):
+
+    def transcribe_chunked_audio(file_or_yt_url, language="Bokmål", return_timestamps=True, num_beams_slider=1, length_penalty_slider=1.0, top_k_slider=50, temperature_slider=1.0, chunk_length_slider=28,progress=gr.Progress()):
         task = "Verbatim"
+        print(f"num_beams_slider = {num_beams_slider}")
+        print(f"length_penalty_slider = {length_penalty_slider}")
+        print(f"top_k_slider = {top_k_slider}")
+        print(f"temperature_slider = {temperature_slider}")
+        print(f"chunk_length_slider = {chunk_length_slider}")
+
 
         if isinstance(file_or_yt_url, str) and file_or_yt_url.startswith("http"):
             # Handle YouTube URL input
