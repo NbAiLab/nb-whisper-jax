@@ -537,22 +537,16 @@ def clear(audio, language, timestamps_checkbox, num_beams, length_penalty, top_k
     return None, "Bokmål", True, 1, 1.0, 50, 1.0, 28, ""
 
 def update_sliders(num_beams):
-    updates = {}
+    # Update length_penalty_slider
+    length_penalty_update = gr.update(visible=False, value=1.0) if num_beams == 1 else gr.update(visible=True)
+    
+    # Update top_k_slider and temperature_slider
+    sliders_visibility = False if num_beams > 1 else True
+    top_k_update = gr.update(visible=sliders_visibility)
+    temperature_update = gr.update(visible=sliders_visibility)
 
-    # If number of beams is 1, hide the length penalty slider and set its value to 1.0
-    # Also, make top_k_slider and temperature_slider visible
-    if num_beams == 1:
-        updates['length_penalty_slider'] = gr.update(visible=False, value=1.0)
-        updates['top_k_slider'] = gr.update(visible=True)
-        updates['temperature_slider'] = gr.update(visible=True)
-    else:
-        # If number of beams is greater than 1, show length penalty slider
-        # and hide top_k_slider and temperature_slider
-        updates['length_penalty_slider'] = gr.update(visible=True)
-        updates['top_k_slider'] = gr.update(visible=False)
-        updates['temperature_slider'] = gr.update(visible=False)
+    return length_penalty_update, top_k_update, temperature_update
 
-    return updates
 
 
 
