@@ -432,13 +432,12 @@ if __name__ == "__main__":
 
 
 
-    def transcribe_chunked_audio(file_or_yt_url, language="Bokmål", return_timestamps=True, num_beams_slider=1, length_penalty_slider=1.0, top_k_slider=50, temperature_slider=1.0, chunk_length_slider=28,progress=gr.Progress()):
+    def transcribe_chunked_audio(file_or_yt_url, language="Bokmål", return_timestamps=True, num_beams_slider=1, length_penalty_slider=1.0, top_k_slider=50, temperature_slider=1.0, progress=gr.Progress()):
         task = "Verbatim"
         print(f"num_beams_slider = {num_beams_slider}")
         print(f"length_penalty_slider = {length_penalty_slider}")
         print(f"top_k_slider = {top_k_slider}")
         print(f"temperature_slider = {temperature_slider}")
-        print(f"chunk_length_slider = {chunk_length_slider}")
 
 
         if isinstance(file_or_yt_url, str) and file_or_yt_url.startswith("http"):
@@ -556,7 +555,6 @@ with gr.Blocks() as demo:
                     length_penalty_slider = gr.Slider(minimum=0.1, maximum=2.0, step=0.1, label="Length Penalty", value=1.0)
                     top_k_slider = gr.Slider(minimum=1, maximum=100, step=1, label="Top K", value=50)
                     temperature_slider = gr.Slider(minimum=0.0, maximum=2.0, step=0.1, label="Temperature", value=1.0)
-                    chunk_length_slider = gr.Slider(minimum=15, maximum=30, step=1, label="Chunk Length (s)", value=28)
 
                 with gr.Row():
                     clear_button = gr.Button("Clear")
@@ -593,7 +591,6 @@ with gr.Blocks() as demo:
                     length_penalty_slider2 = gr.Slider(minimum=0.1, maximum=2.0, step=0.1, label="Length Penalty", value=1.0)
                     top_k_slider2 = gr.Slider(minimum=1, maximum=100, step=1, label="Top K", value=50)
                     temperature_slider2 = gr.Slider(minimum=0.0, maximum=2.0, step=0.1, label="Temperature", value=1.0)
-                    chunk_length_slider2 = gr.Slider(minimum=15, maximum=30, step=1, label="Chunk Length (s)", value=28)
 
                 with gr.Row():
                     clear_button2 = gr.Button("Clear")
