@@ -78,6 +78,15 @@ article = f"Submit feedback [here](https://forms.gle/cCQzdox9N2ENDczV7). Backend
           f"[TRC](https://sites.research.google/trc/about/) programme. " \
           f"Whisper JAX [code](https://github.com/sanchit-gandhi/whisper-jax) and Gradio demo by 🤗 Hugging Face."
 
+article = """
+<div style='text-align: center;'>
+Submit feedback <a href='https://forms.gle/cCQzdox9N2ENDczV7'>here</a>. Backend running JAX on a TPU v3 through support from the 
+<a href='https://sites.research.google/trc/about/'>TRC</a> programme. 
+Whisper JAX <a href='https://github.com/sanchit-gandhi/whisper-jax'>code</a> and Gradio demo by 🤗 Hugging Face.
+</div>
+"""
+
+
 language_names = sorted(TO_LANGUAGE_CODE.keys())
 
 logger = logging.getLogger("whisper-jax-app")
