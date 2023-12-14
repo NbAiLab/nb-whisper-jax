@@ -558,8 +558,9 @@ with gr.Blocks() as demo:
                     temperature_slider = gr.Slider(minimum=0.0, maximum=2.0, step=0.1, label="Temperature", value=1.0)
                     chunk_length_slider = gr.Slider(minimum=15, maximum=30, step=1, label="Chunk Length (s)", value=28)
 
-                clear_button = gr.Button("Clear")
-                submit_button = gr.Button("Submit")
+                with gr.Row():
+                    clear_button = gr.Button("Clear")
+                    submit_button = gr.Button("Submit" , style="background-color: orange; color: white;")
 
             with gr.Column():
                 video_output = gr.Video(label="Video", visible=True)
@@ -594,9 +595,10 @@ with gr.Blocks() as demo:
                     temperature_slider2 = gr.Slider(minimum=0.0, maximum=2.0, step=0.1, label="Temperature", value=1.0)
                     chunk_length_slider2 = gr.Slider(minimum=15, maximum=30, step=1, label="Chunk Length (s)", value=28)
 
-                clear_button2 = gr.Button("Clear")
-                submit_button2 = gr.Button("Submit")
-                
+                with gr.Row():
+                    clear_button2 = gr.Button("Clear")
+                    submit_button2 = gr.Button("Submit")
+                    
                 # Add examples for YouTube tab
                 gr.Examples(
                     examples=youtube_examples,
