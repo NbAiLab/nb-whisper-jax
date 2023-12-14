@@ -532,7 +532,7 @@ def clear(audio, language, timestamps_checkbox, num_beams, length_penalty, top_k
 
 with gr.Blocks() as demo:
     gr.Image("nb-logo-full-cropped.png", show_label=False, interactive=False, height=100, container=False)
-    gr.Markdown(title)
+    gr.Markdown(f"<h2 style='text-align: center;'>{title}</h2>")
     with gr.Tab("Audio"):
         with gr.Row():
             with gr.Column():
