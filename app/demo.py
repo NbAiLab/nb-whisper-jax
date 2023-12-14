@@ -332,10 +332,9 @@ if __name__ == "__main__":
                 if num_beams == 1:
                     length_penalty = 1.0
                 
-                ()
                 verbatim_outputs.append(
                     pipeline.forward(batch, batch_size=BATCH_SIZE, task="transcribe", language=language,
-                                     num_beams=num_beams,length_penalty=length_penalty, top_k=top_k, temperature=temperature, do_sample=True,return_timestamps=return_timestamps)
+                                     num_beams=num_beams,length_penalty=length_penalty, top_k=top_k, temperature=temperature, do_sample=do_sample,return_timestamps=return_timestamps)
                 )
 
         # Semantic (translate) loop
