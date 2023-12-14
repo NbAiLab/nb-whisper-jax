@@ -560,7 +560,7 @@ with gr.Blocks() as demo:
 
                 with gr.Row():
                     clear_button = gr.Button("Clear")
-                    submit_button = gr.Button("Submit" , style="background-color: orange; color: white;")
+                    submit_button = gr.Button("Submit"")
 
             with gr.Column():
                 video_output = gr.Video(label="Video", visible=True)
