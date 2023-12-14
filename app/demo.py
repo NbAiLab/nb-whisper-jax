@@ -542,8 +542,8 @@ def update_sliders(num_beams):
     
     # Update top_k_slider and temperature_slider
     sliders_visibility = False if num_beams > 1 else True
-    top_k_update = gr.update(visible=sliders_visibility)
-    temperature_update = gr.update(visible=sliders_visibility)
+    top_k_update = gr.update(visible=sliders_visibility, value=50)
+    temperature_update = gr.update(visible=sliders_visibility, value=1.0)
 
     return length_penalty_update, top_k_update, temperature_update
 
@@ -617,6 +617,10 @@ with gr.Blocks() as demo:
                     length_penalty_slider2 = gr.Slider(minimum=0.1, maximum=2.0, step=0.1, label="Length Penalty", value=1.0)
                     top_k_slider2 = gr.Slider(minimum=1, maximum=100, step=1, label="Top K", value=50)
                     temperature_slider2 = gr.Slider(minimum=0.0, maximum=2.0, step=0.1, label="Temperature", value=1.0)
+
+                    # Update sliders based on num_beams_slider2 value for YouTube tab
+                    num_beams_slider2.change(update_sliders, inputs=num_beams_slider2, outputs=[length_penalty_slider2, top_k_slider2, temperature_slider2])
+
 
                 with gr.Row():
                     clear_button2 = gr.Button("Clear")
