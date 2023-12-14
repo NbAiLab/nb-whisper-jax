@@ -596,6 +596,13 @@ with gr.Blocks() as demo:
 
                 clear_button2 = gr.Button("Clear")
                 submit_button2 = gr.Button("Submit")
+                
+                # Add examples for YouTube tab
+                gr.Examples(
+                    examples=youtube_examples,
+                    inputs=[yt_input, yt_language_input, yt_timestamps_checkbox],
+                    cache_examples=False
+                )
 
             with gr.Column():
                 yt_video_output = gr.Video(label="Video")
@@ -604,12 +611,7 @@ with gr.Blocks() as demo:
                 yt_transcription_time_output = gr.Textbox(label="Transcription Time (s)")
                 yt_download_output = gr.File(label="Download")
 
-            # Add examples for YouTube tab
-            gr.Examples(
-                examples=youtube_examples,
-                inputs=[yt_input, yt_language_input, yt_timestamps_checkbox],
-                cache_examples=False
-            )
+
 
             clear_button2.click(
                 clear,
