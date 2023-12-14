@@ -332,7 +332,7 @@ if __name__ == "__main__":
                 if num_beams == 1:
                     length_penalty = 1.0
                 
-                breakpoint()
+                ()
                 verbatim_outputs.append(
                     pipeline.forward(batch, batch_size=BATCH_SIZE, task="transcribe", language=language,
                                      num_beams=num_beams,length_penalty=length_penalty, top_k=top_k, temperature=temperature, do_sample=True,return_timestamps=return_timestamps)
@@ -434,7 +434,7 @@ if __name__ == "__main__":
         inputs = ffmpeg_read(file_contents, pipeline.feature_extractor.sampling_rate)
         inputs = {"array": inputs, "sampling_rate": pipeline.feature_extractor.sampling_rate}
         logger.info("done loading")
-
+        breakpoint()
         text, runtime = tqdm_generate(inputs, language=language, task=task, return_timestamps=return_timestamps, num_beams=num_beams,length_penalty=length_penalty, top_k=top_k, temperature=temperature,
                                       progress=progress)
         return text, runtime
