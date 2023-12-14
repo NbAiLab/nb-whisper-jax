@@ -625,7 +625,7 @@ with gr.Blocks() as demo:
                 inputs=[yt_input, yt_language_input, yt_timestamps_checkbox, num_beams_slider2, length_penalty_slider2, top_k_slider2, temperature_slider2, chunk_length_slider2],
                 outputs=[yt_video_output,yt_transcription_output,yt_transcription_output,yt_transcription_time_output,yt_download_output]
             )
-    gr.Markdown(article, style={"text-align": "center"})
+    gr.Markdown(f"<div style='text-align: center;'>{article}</div>")
 
 demo.queue(max_size=10)
 demo.launch()
