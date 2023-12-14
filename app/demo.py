@@ -326,7 +326,7 @@ if __name__ == "__main__":
             for batch, _ in zip(dataloader, progress.tqdm(dummy_batches, desc="Transcribing...")):
                 verbatim_outputs.append(
                     pipeline.forward(batch, batch_size=BATCH_SIZE, task="transcribe", language=language,
-                                     num_beams=4,length_penalty=1.1, top_k=49, temperature=1.1, return_timestamps=return_timestamps)
+                                     num_beams=4,length_penalty=1.1, top_k=49, temperature=1.1, do_sample=True,return_timestamps=return_timestamps)
                 )
 
         # Semantic (translate) loop
