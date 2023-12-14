@@ -518,44 +518,125 @@ if __name__ == "__main__":
         return fpath
 
 
-        with gr.Blocks() as demo:
-            gr.Image("nb-logo-full-cropped.png", show_label=False, interactive=False, height=100, container=False)
-        
-            with gr.Tab("Audio"):
+def clear(audio, language, num_beams, length_penalty, top_k, temperature, chunk_length_s, transcription):
+    # Reset all fields to their default values
+    return None, "English", 1, 1.0, 50, 1.0, 28, ""
+
+with gr.Blocks() as demo:
+    with gr.Tab("Audio"):
+        with gr.Row():
+            with gr.Column():
+                # Inputs and buttons for "Audio" tab
                 audio_input = gr.Audio(sources=["upload", "microphone"], label="Audio file", type="filepath")
                 language_input = gr.Radio(["Bokmål", "Nynorsk", "English"], label="Output Language", value="Bokmål")
                 timestamps_checkbox = gr.Checkbox(value=True, label="Return timestamps")
+
+                with gr.Accordion(label="Advanced Options", open=False):
+                    num_beams_slider = gr.Slider(minimum=1, maximum=10, step=1, label="Number of Beams", value=1)
+                    length_penalty_slider = gr.Slider(minimum=0.1, maximum=2.0, step=0.1, label="Length Penalty", value=1.0)
+                    top_k_slider = gr.Slider(minimum=1, maximum=100, step=1, label="Top K", value=50)
+                    temperature_slider = gr.Slider(minimum=0.0, maximum=2.0, step=0.1, label="Temperature", value=1.0)
+                    chunk_length_slider = gr.Slider(minimum=15, maximum=30, step=1, label="Chunk Length (s)", value=28)
+
+                clear_button = gr.Button("Clear")
                 submit_button = gr.Button("Submit")
-        
-                video_output = gr.Video(label="Video", visible=True)
-                audio_output = gr.Audio(label="Audio", visible=False)
-                transcription_output = gr.Textbox(label="Transcription", show_copy_button=True, show_label=True)
-                transcription_time_output = gr.Textbox(label="Transcription Time (s)")
-                download_output = gr.File(label="Download")
-        
-                submit_button.click(
-                    transcribe_chunked_audio,
-                    inputs=[audio_input, language_input, timestamps_checkbox],
-                    outputs=[video_output, audio_output, transcription_output, transcription_time_output, download_output]
-                )
-        
-            with gr.Tab("YouTube"):
-                yt_input = gr.Textbox(lines=1, placeholder="Paste the URL to a YouTube or Twitter/X video here", label="YouTube or Twitter/X URL")
-                yt_language_input = gr.Radio(["Bokmål", "Nynorsk", "English"], label="Output Language", value="Bokmål")
-                yt_timestamps_checkbox = gr.Checkbox(value=True, label="Return timestamps")
-                yt_submit_button = gr.Button("Submit")
-        
-                yt_video_output = gr.Video(label="Video")
-                yt_audio_output = gr.Audio(label="Audio", visible=False)
-                yt_transcription_output = gr.Textbox(label="Transcription", show_copy_button=True, show_label=True)
-                yt_transcription_time_output = gr.Textbox(label="Transcription Time (s)")
-                yt_download_output = gr.File(label="Download")
-        
-                yt_submit_button.click(
-                    transcribe_chunked_audio,
-                    inputs=[yt_input, yt_language_input, yt_timestamps_checkbox],
-                    outputs=[yt_video_output, yt_audio_output, yt_transcription_output, yt_transcription_time_output, yt_download_output]
-                )
-        
-        demo.queue(max_size=10)
-        demo.launch(server_name="0.0.0.0", show_api=True)
+
+            with gr.Column():
+                # Output for "Audio" tab
+                transcription_output = gr.Textbox(label="Transcription", show_copy_button=True)
+
+            clear_button.click(
+                clear,
+                inputs=[audio_input, language_input, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider, chunk_length_slider, transcription_output],
+                outputs=[audio_input, language_input, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider, chunk_length_slider, transcription_output]
+            )
+            submit_button.click(
+                transcribe_chunked_audio,
+                inputs=[audio_input, language_input, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider, chunk_length_slider],
+                outputs=transcription_output
+            )
+
+    with gr.Tab("Video"):
+        with gr.Row():
+            with gr.Column():
+                # Inputs and buttons for "Audio2" tab
+                audio_input2 = gr.Audio(sources=["upload", "microphone"], label="Audio file", type="filepath")
+                language_input2 = gr.Radio(["Bokmål", "Nynorsk", "English"], label="Output Language", value="Bokmål")
+                timestamps_checkbox2 = gr.Checkbox(value=True, label="Return timestamps")
+
+                with gr.Accordion(label="Advanced Options", open=False):
+                    num_beams_slider2 = gr.Slider(minimum=1, maximum=10, step=1, label="Number of Beams", value=1)
+                    length_penalty_slider2 = gr.Slider(minimum=0.1, maximum=2.0, step=0.1, label="Length Penalty", value=1.0)
+                    top_k_slider2 = gr.Slider(minimum=1, maximum=100, step=1, label="Top K", value=50)
+                    temperature_slider2 = gr.Slider(minimum=0.0, maximum=2.0, step=0.1, label="Temperature", value=1.0)
+                    chunk_length_slider2 = gr.Slider(minimum=15, maximum=30, step=1, label="Chunk Length (s)", value=28)
+
+                clear_button2 = gr.Button("Clear")
+                submit_button2 = gr.Button("Submit")
+
+            with gr.Column():
+                # Output for "Audio2" tab
+                transcription_output2 = gr.Textbox(label="Transcription", show_copy_button=True)
+
+            clear_button2.click(
+                clear,
+                inputs=[audio_input2, language_input2, num_beams_slider2, length_penalty_slider2, top_k_slider2, temperature_slider2, chunk_length_slider2, transcription_output2],
+                outputs=[audio_input2, language_input2, num_beams_slider2, length_penalty_slider2, top_k_slider2, temperature_slider2, chunk_length_slider2, transcription_output2]
+            )
+            submit_button2.click(
+                transcribe_chunked_audio,
+                inputs=[audio_input2, language_input2, num_beams_slider2, length_penalty_slider2, top_k_slider2, temperature_slider2, chunk_length_slider2],
+                outputs=transcription_output2
+            )
+
+demo.queue(max_size=10)
+demo.launch()
+
+
+
+
+
+
+""" 
+    with gr.Blocks() as demo:
+        gr.Image("nb-logo-full-cropped.png", show_label=False, interactive=False, height=100, container=False)
+    
+        with gr.Tab("Audio"):
+            audio_input = gr.Audio(sources=["upload", "microphone"], label="Audio file", type="filepath")
+            language_input = gr.Radio(["Bokmål", "Nynorsk", "English"], label="Output Language", value="Bokmål")
+            timestamps_checkbox = gr.Checkbox(value=True, label="Return timestamps")
+            submit_button = gr.Button("Submit")
+    
+            video_output = gr.Video(label="Video", visible=True)
+            audio_output = gr.Audio(label="Audio", visible=False)
+            transcription_output = gr.Textbox(label="Transcription", show_copy_button=True, show_label=True)
+            transcription_time_output = gr.Textbox(label="Transcription Time (s)")
+            download_output = gr.File(label="Download")
+    
+            submit_button.click(
+                transcribe_chunked_audio,
+                inputs=[audio_input, language_input, timestamps_checkbox],
+                outputs=[video_output, audio_output, transcription_output, transcription_time_output, download_output]
+            )
+    
+        with gr.Tab("YouTube"):
+            yt_input = gr.Textbox(lines=1, placeholder="Paste the URL to a YouTube or Twitter/X video here", label="YouTube or Twitter/X URL")
+            yt_language_input = gr.Radio(["Bokmål", "Nynorsk", "English"], label="Output Language", value="Bokmål")
+            yt_timestamps_checkbox = gr.Checkbox(value=True, label="Return timestamps")
+            yt_submit_button = gr.Button("Submit")
+    
+            yt_video_output = gr.Video(label="Video")
+            yt_audio_output = gr.Audio(label="Audio", visible=False)
+            yt_transcription_output = gr.Textbox(label="Transcription", show_copy_button=True, show_label=True)
+            yt_transcription_time_output = gr.Textbox(label="Transcription Time (s)")
+            yt_download_output = gr.File(label="Download")
+    
+            yt_submit_button.click(
+                transcribe_chunked_audio,
+                inputs=[yt_input, yt_language_input, yt_timestamps_checkbox],
+                outputs=[yt_video_output, yt_audio_output, yt_transcription_output, yt_transcription_time_output, yt_download_output]
+            )
+    
+    demo.queue(max_size=10)
+    demo.launch(server_name="0.0.0.0", show_api=True)
+ """
