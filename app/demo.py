@@ -527,7 +527,7 @@ if __name__ == "__main__":
 
 def clear(audio, language, num_beams, length_penalty, top_k, temperature, chunk_length_s, transcription):
     # Reset all fields to their default values
-    return None, "English", 1, 1.0, 50, 1.0, 28, ""
+    return None, "Bokmål", True, 1, 1.0, 50, 1.0, 28, ""
 
 with gr.Blocks() as demo:
     with gr.Tab("Audio"):
@@ -557,8 +557,8 @@ with gr.Blocks() as demo:
 
             clear_button.click(
                 clear,
-                inputs=[audio_input, language_input, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider, chunk_length_slider, transcription_output],
-                outputs=[audio_input, language_input, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider, chunk_length_slider, transcription_output]
+                inputs=[audio_input, language_input, timestamps_checkbox, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider, chunk_length_slider, transcription_output],
+                outputs=[audio_input, language_input, timestamps_checkbox, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider, chunk_length_slider, transcription_output]
             )
             submit_button.click(
                 transcribe_chunked_audio,
