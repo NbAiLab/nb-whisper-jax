@@ -529,7 +529,11 @@ def clear(audio, language, num_beams, length_penalty, top_k, temperature, chunk_
     # Reset all fields to their default values
     return None, "Bokmål", True, 1, 1.0, 50, 1.0, 28, ""
 
+
+
+
 with gr.Blocks() as demo:
+    gr.Image("nb-logo-full-cropped.png", show_label=False, interactive=False, height=100, container=False)
     with gr.Tab("Audio"):
         with gr.Row():
             with gr.Column():
