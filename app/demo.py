@@ -560,7 +560,7 @@ with gr.Blocks() as demo:
 
                 with gr.Row():
                     clear_button = gr.Button("Clear")
-                    submit_button = gr.Button("Submit"")
+                    submit_button = gr.Button("Submit", variant="primary")
 
             with gr.Column():
                 video_output = gr.Video(label="Video", visible=True)
@@ -597,7 +597,7 @@ with gr.Blocks() as demo:
 
                 with gr.Row():
                     clear_button2 = gr.Button("Clear")
-                    submit_button2 = gr.Button("Submit")
+                    submit_button2 = gr.Button("Submit", variant="primary")
                     
                 # Add examples for YouTube tab
                 gr.Examples(
