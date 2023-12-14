@@ -569,12 +569,12 @@ with gr.Blocks() as demo:
 
             clear_button.click(
                 clear,
-                inputs=[audio_input, language_input, timestamps_checkbox, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider, chunk_length_slider, transcription_output],
-                outputs=[audio_input, language_input, timestamps_checkbox, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider, chunk_length_slider, transcription_output]
+                inputs=[audio_input, language_input, timestamps_checkbox, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider, transcription_output],
+                outputs=[audio_input, language_input, timestamps_checkbox, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider, transcription_output]
             )
             submit_button.click(
                 transcribe_chunked_audio,
-                inputs=[audio_input, language_input, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider, chunk_length_slider],
+                inputs=[audio_input, language_input, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider],
                 outputs=[video_output,audio_output,transcription_output,transcription_time_output,download_output]
             )
 
@@ -614,12 +614,12 @@ with gr.Blocks() as demo:
 
             clear_button2.click(
                 clear,
-                inputs=[yt_input, yt_language_input, yt_timestamps_checkbox, num_beams_slider2, length_penalty_slider2, top_k_slider2, temperature_slider2, chunk_length_slider2, yt_transcription_output],
-                outputs=[yt_input, yt_language_input, yt_timestamps_checkbox, num_beams_slider2, length_penalty_slider2, top_k_slider2, temperature_slider2, chunk_length_slider2, yt_transcription_output]
+                inputs=[yt_input, yt_language_input, yt_timestamps_checkbox, num_beams_slider2, length_penalty_slider2, top_k_slider2, temperature_slider2, yt_transcription_output],
+                outputs=[yt_input, yt_language_input, yt_timestamps_checkbox, num_beams_slider2, length_penalty_slider2, top_k_slider2, temperature_slider2, yt_transcription_output]
             )
             submit_button2.click(
                 transcribe_chunked_audio,
-                inputs=[yt_input, yt_language_input, yt_timestamps_checkbox, num_beams_slider2, length_penalty_slider2, top_k_slider2, temperature_slider2, chunk_length_slider2],
+                inputs=[yt_input, yt_language_input, yt_timestamps_checkbox, num_beams_slider2, length_penalty_slider2, top_k_slider2, temperature_slider2],
                 outputs=[yt_video_output,yt_transcription_output,yt_transcription_output,yt_transcription_time_output,yt_download_output]
             )
     gr.Markdown(f"<center>{article}</center>")
