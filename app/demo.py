@@ -443,7 +443,7 @@ if __name__ == "__main__":
 
     def transcribe_chunked_audio(file_or_yt_url, language="Bokmål", return_timestamps=True, num_beams_slider=1, length_penalty_slider=1.0, top_k_slider=50, temperature_slider=1.0, progress=gr.Progress()):
         task = "Verbatim"
-        breakpoint()
+
         if isinstance(file_or_yt_url, str) and file_or_yt_url.startswith("http"):
             # Handle YouTube URL input
             yt_url = file_or_yt_url
@@ -578,7 +578,7 @@ with gr.Blocks() as demo:
             )
             submit_button.click(
                 transcribe_chunked_audio,
-                inputs=[audio_input, language_input, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider],
+                inputs=[audio_input, language_input, timestamps_checkbox, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider],
                 outputs=[video_output,audio_output,transcription_output,transcription_time_output,download_output]
             )
 
