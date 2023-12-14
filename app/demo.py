@@ -434,7 +434,7 @@ if __name__ == "__main__":
         inputs = ffmpeg_read(file_contents, pipeline.feature_extractor.sampling_rate)
         inputs = {"array": inputs, "sampling_rate": pipeline.feature_extractor.sampling_rate}
         logger.info("done loading")
-        breakpoint()
+        
         text, runtime = tqdm_generate(inputs, language=language, task=task, return_timestamps=return_timestamps, num_beams=num_beams,length_penalty=length_penalty, top_k=top_k, temperature=temperature,
                                       progress=progress)
         return text, runtime
@@ -443,7 +443,7 @@ if __name__ == "__main__":
 
     def transcribe_chunked_audio(file_or_yt_url, language="Bokmål", return_timestamps=True, num_beams_slider=1, length_penalty_slider=1.0, top_k_slider=50, temperature_slider=1.0, progress=gr.Progress()):
         task = "Verbatim"
-
+        breakpoint()
         if isinstance(file_or_yt_url, str) and file_or_yt_url.startswith("http"):
             # Handle YouTube URL input
             yt_url = file_or_yt_url
