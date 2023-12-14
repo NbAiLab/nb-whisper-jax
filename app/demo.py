@@ -614,7 +614,7 @@ with gr.Blocks() as demo:
                 
                 with gr.Accordion(label="Advanced Options", open=False):
                     num_beams_slider2 = gr.Slider(minimum=1, maximum=10, step=1, label="Number of Beams", value=1)
-                    length_penalty_slider2 = gr.Slider(minimum=0.1, maximum=2.0, step=0.1, label="Length Penalty", value=1.0)
+                    length_penalty_slider2 = gr.Slider(minimum=0.1, maximum=2.0, step=0.1, label="Length Penalty", value=1.0, visible=False)
                     top_k_slider2 = gr.Slider(minimum=1, maximum=100, step=1, label="Top K", value=50)
                     temperature_slider2 = gr.Slider(minimum=0.0, maximum=2.0, step=0.1, label="Temperature", value=1.0)
 
