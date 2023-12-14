@@ -529,7 +529,17 @@ def clear(audio, language, timestamps_checkbox, num_beams, length_penalty, top_k
     # Reset all fields to their default values
     return None, "Bokmål", True, 1, 1.0, 50, 1.0, 28, ""
 
-
+examples=[
+    ["https://www.youtube.com/watch?v=_uv74o8hG30", "Bokmål", "Verbatim", True, False],
+    ["https://www.youtube.com/watch?v=YcBWSBRuk0Q", "Bokmål", "Verbatim", True, False],
+    ["https://www.youtube.com/watch?v=vauTloX4HkU", "Bokmål", "Verbatim", True, False],
+    ["https://www.youtube.com/watch?v=WHF74ppqKFQ", "Bokmål", "Verbatim", True, False],
+    ["https://www.youtube.com/watch?v=b8nz4sh_sj4", "Bokmål", "Verbatim", True, False],
+    ["https://www.youtube.com/watch?v=vauTloX4HkU", "Bokmål", "Verbatim", True, False],
+    ["https://www.youtube.com/watch?v=pMesxWW-daA", "Bokmål", "Verbatim", True, False],
+    ["https://www.youtube.com/watch?v=x0Fsn4I54C0", "Bokmål", "Verbatim", True, False]
+    
+]
 with gr.Blocks() as demo:
     gr.Image("nb-logo-full-cropped.png", show_label=False, interactive=False, height=100, container=False)
     gr.Markdown(f"<h1 style='text-align: center;'>{title}</h1>")
@@ -593,6 +603,13 @@ with gr.Blocks() as demo:
                 yt_transcription_output = gr.Textbox(label="Transcription", show_copy_button=True, show_label=True)
                 yt_transcription_time_output = gr.Textbox(label="Transcription Time (s)")
                 yt_download_output = gr.File(label="Download")
+
+            # Add examples for YouTube tab
+            gr.Examples(
+                examples=youtube_examples,
+                inputs=[yt_input, yt_language_input, yt_timestamps_checkbox],
+                cache_examples=False
+            )
 
             clear_button2.click(
                 clear,
