@@ -529,7 +529,7 @@ def clear(audio, language, timestamps_checkbox, num_beams, length_penalty, top_k
     # Reset all fields to their default values
     return None, "Bokmål", True, 1, 1.0, 50, 1.0, 28, ""
 
-examples=[
+youtube_examples=[
     ["https://www.youtube.com/watch?v=_uv74o8hG30", "Bokmål", "Verbatim", True, False],
     ["https://www.youtube.com/watch?v=YcBWSBRuk0Q", "Bokmål", "Verbatim", True, False],
     ["https://www.youtube.com/watch?v=vauTloX4HkU", "Bokmål", "Verbatim", True, False],
