@@ -433,7 +433,7 @@ if __name__ == "__main__":
         return transcript_file_path, subtitle_display
 
 
-    def perform_transcription(file_contents, language, task, return_timestamps, num_beams=1,length_penalty=1.0, top_k=50, temperature=1.0, progress):
+    def perform_transcription(file_contents, language, task, return_timestamps, num_beams,length_penalty, top_k, temperature, progress):
         inputs = ffmpeg_read(file_contents, pipeline.feature_extractor.sampling_rate)
         inputs = {"array": inputs, "sampling_rate": pipeline.feature_extractor.sampling_rate}
         logger.info("done loading")
