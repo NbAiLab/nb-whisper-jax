@@ -571,7 +571,7 @@ with gr.Blocks() as demo:
                     num_beams_slider = gr.Slider(minimum=1, maximum=10, step=1, label="Number of Beams", value=1)
                     length_penalty_slider = gr.Slider(minimum=0.1, maximum=2.0, step=0.1, label="Length Penalty", value=1.0)
                     top_k_slider = gr.Slider(minimum=1, maximum=100, step=1, label="Top K", value=50)
-                    temperature_slider = gr.Slider(minimum=0.0, maximum=2.0, step=0.1, label="Temperature", value=1.0, visibility=False)
+                    temperature_slider = gr.Slider(minimum=0.0, maximum=2.0, step=0.1, label="Temperature", value=1.0, visible=False)
 
                      # Update length penalty slider based on num_beams_slider value
                     num_beams_slider.change(update_length_penalty_slider, inputs=num_beams_slider, outputs=length_penalty_slider)
