@@ -556,14 +556,14 @@ with gr.Blocks() as demo:
                 outputs=transcription_output
             )
 
-    with gr.Tab("Video"):
+    with gr.Tab("YouTube"):
         with gr.Row():
             with gr.Column():
-                # Inputs and buttons for "Audio2" tab
-                audio_input2 = gr.Audio(sources=["upload", "microphone"], label="Audio file", type="filepath")
-                language_input2 = gr.Radio(["Bokmål", "Nynorsk", "English"], label="Output Language", value="Bokmål")
-                timestamps_checkbox2 = gr.Checkbox(value=True, label="Return timestamps")
-
+                # Inputs and buttons for "Video" tab
+                yt_input = gr.Textbox(lines=1, placeholder="Paste the URL to a YouTube or Twitter/X video here", label="YouTube or Twitter/X URL")
+                yt_language_input = gr.Radio(["Bokmål", "Nynorsk", "English"], label="Output Language", value="Bokmål")
+                yt_timestamps_checkbox = gr.Checkbox(value=True, label="Return timestamps")
+                
                 with gr.Accordion(label="Advanced Options", open=False):
                     num_beams_slider2 = gr.Slider(minimum=1, maximum=10, step=1, label="Number of Beams", value=1)
                     length_penalty_slider2 = gr.Slider(minimum=0.1, maximum=2.0, step=0.1, label="Length Penalty", value=1.0)
