@@ -542,8 +542,11 @@ with gr.Blocks() as demo:
                 submit_button = gr.Button("Submit")
 
             with gr.Column():
-                # Output for "Audio" tab
-                transcription_output = gr.Textbox(label="Transcription", show_copy_button=True)
+                video_output = gr.Video(label="Video", visible=True)
+                audio_output = gr.Audio(label="Audio", visible=False)
+                transcription_output = gr.Textbox(label="Transcription", show_copy_button=True, show_label=True)
+                transcription_time_output = gr.Textbox(label="Transcription Time (s)")
+                download_output = gr.File(label="Download")
 
             clear_button.click(
                 clear,
@@ -553,7 +556,7 @@ with gr.Blocks() as demo:
             submit_button.click(
                 transcribe_chunked_audio,
                 inputs=[audio_input, language_input, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider, chunk_length_slider],
-                outputs=transcription_output
+                outputs=[video_output,audio_output,transcription_output,transcription_time_output,download_output]
             )
 
     with gr.Tab("YouTube"):
@@ -575,18 +578,21 @@ with gr.Blocks() as demo:
                 submit_button2 = gr.Button("Submit")
 
             with gr.Column():
-                # Output for "Audio2" tab
-                transcription_output2 = gr.Textbox(label="Transcription", show_copy_button=True)
+                yt_video_output = gr.Video(label="Video")
+                yt_audio_output = gr.Audio(label="Audio", visible=False)
+                yt_transcription_output = gr.Textbox(label="Transcription", show_copy_button=True, show_label=True)
+                yt_transcription_time_output = gr.Textbox(label="Transcription Time (s)")
+                yt_download_output = gr.File(label="Download")
 
             clear_button2.click(
                 clear,
-                inputs=[audio_input2, language_input2, num_beams_slider2, length_penalty_slider2, top_k_slider2, temperature_slider2, chunk_length_slider2, transcription_output2],
-                outputs=[audio_input2, language_input2, num_beams_slider2, length_penalty_slider2, top_k_slider2, temperature_slider2, chunk_length_slider2, transcription_output2]
+                inputs=[yt_input, yt_language_input, yt_timestamps_checkbox, num_beams_slider2, length_penalty_slider2, top_k_slider2, temperature_slider2, chunk_length_slider2, yt_transcription_output],
+                outputs=[yt_input, yt_language_input, yt_timestamps_checkbox, num_beams_slider2, length_penalty_slider2, top_k_slider2, temperature_slider2, chunk_length_slider2, yt_transcription_output]
             )
             submit_button2.click(
                 transcribe_chunked_audio,
-                inputs=[audio_input2, language_input2, num_beams_slider2, length_penalty_slider2, top_k_slider2, temperature_slider2, chunk_length_slider2],
-                outputs=transcription_output2
+                inputs=[yt_input, yt_language_input, yt_timestamps_checkbox, num_beams_slider2, length_penalty_slider2, top_k_slider2, temperature_slider2, chunk_length_slider2],
+                outputs=[yt_video_output,yt_transcription_output,yt_transcription_output,yt_transcription_time_output,yt_download_output]
             )
 
 demo.queue(max_size=10)
