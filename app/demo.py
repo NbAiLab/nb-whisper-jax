@@ -295,7 +295,7 @@ if __name__ == "__main__":
     logger.info(f"compiled in {compile_time}s")
 
 
-    def tqdm_generate(inputs: dict, language: str, task: str, return_timestamps: bool, num_beams=1,length_penalty=1.0, top_k=50, temperature=1.0, progress: gr.Progress) -> Tuple[
+    def tqdm_generate(inputs: dict, language: str, task: str, return_timestamps: bool, num_beams: int,length_penalty: bool, top_k: int, temperature: bool, progress: gr.Progress) -> Tuple[
         str, float]:
         inputs_len = inputs["array"].shape[0]
         all_chunk_start_idx = np.arange(0, inputs_len, step)
