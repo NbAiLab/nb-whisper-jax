@@ -330,8 +330,13 @@ if __name__ == "__main__":
                     do_sample = False
 
                 if num_beams == 1:
+                    # Can't use length penalty without beam search
                     length_penalty = 1.0
-                
+                else:
+                    # Beam sampling is not implemented in FlaxWhisperPipeline
+                    temperature = 1.0
+                    top_k = 50
+
                 verbatim_outputs.append(
                     pipeline.forward(batch, batch_size=BATCH_SIZE, task="transcribe", language=language,
                                      num_beams=num_beams,length_penalty=length_penalty, top_k=top_k, temperature=temperature, do_sample=do_sample,return_timestamps=return_timestamps)
@@ -531,6 +536,15 @@ def clear(audio, language, timestamps_checkbox, num_beams, length_penalty, top_k
     # Reset all fields to their default values
     return None, "Bokmål", True, 1, 1.0, 50, 1.0, 28, ""
 
+def update_length_penalty_slider(num_beams):
+    # If number of beams is 1, hide the length penalty slider and set its value to 1.0
+    if num_beams == 1:
+        return gr.update(visible=False, value=1.0)
+    else:
+        # Otherwise, show the slider
+        return gr.update(visible=True)
+
+
 youtube_examples=[
     ["https://www.youtube.com/watch?v=_uv74o8hG30", "Bokmål", "Verbatim", True, False],
     ["https://www.youtube.com/watch?v=YcBWSBRuk0Q", "Bokmål", "Verbatim", True, False],
@@ -557,7 +571,10 @@ with gr.Blocks() as demo:
                     num_beams_slider = gr.Slider(minimum=1, maximum=10, step=1, label="Number of Beams", value=1)
                     length_penalty_slider = gr.Slider(minimum=0.1, maximum=2.0, step=0.1, label="Length Penalty", value=1.0)
                     top_k_slider = gr.Slider(minimum=1, maximum=100, step=1, label="Top K", value=50)
-                    temperature_slider = gr.Slider(minimum=0.0, maximum=2.0, step=0.1, label="Temperature", value=1.0)
+                    temperature_slider = gr.Slider(minimum=0.0, maximum=2.0, step=0.1, label="Temperature", value=1.0, visibility=False)
+
+                     # Update length penalty slider based on num_beams_slider value
+                    num_beams_slider.change(update_length_penalty_slider, inputs=num_beams_slider, outputs=length_penalty_slider)
 
                 with gr.Row():
                     clear_button = gr.Button("Clear")
