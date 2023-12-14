@@ -525,11 +525,9 @@ if __name__ == "__main__":
         return fpath
 
 
-def clear(audio, language, num_beams, length_penalty, top_k, temperature, chunk_length_s, transcription):
+def clear(audio, language, timestamps_checkbox, num_beams, length_penalty, top_k, temperature, chunk_length_s, transcription):
     # Reset all fields to their default values
     return None, "Bokmål", True, 1, 1.0, 50, 1.0, 28, ""
-
-
 
 
 with gr.Blocks() as demo:
