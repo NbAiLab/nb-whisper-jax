@@ -343,6 +343,15 @@ if __name__ == "__main__":
                     temperature = 1.0
                     top_k = 50
 
+                # Ensure num_beams and top_k are integers
+                num_beams = int(num_beams)
+                top_k = int(top_k)
+
+                # Ensure length_penalty and temperature are positive floats
+                length_penalty = max(0.0, float(length_penalty))
+                temperature = max(0.0, float(temperature))
+
+
                 verbatim_outputs.append(
                     pipeline.forward(batch, batch_size=BATCH_SIZE, task="transcribe", language=language,
                                      num_beams=num_beams,length_penalty=length_penalty, top_k=top_k, temperature=temperature, do_sample=do_sample,return_timestamps=return_timestamps)
