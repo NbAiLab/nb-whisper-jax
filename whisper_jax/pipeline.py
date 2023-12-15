@@ -36,7 +36,7 @@ from .modeling_flax_whisper import FlaxWhisperForConditionalGeneration
 logger = logging.get_logger(__name__)
 logger.info("Using the pipeline from Distil Whisper")
 
-
+cccc
 class FlaxWhisperFeatureExtractor(WhisperFeatureExtractor):
     def _np_extract_fbank_features(self, waveform: np.array) -> np.ndarray:
         """
