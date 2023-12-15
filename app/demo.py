@@ -632,7 +632,7 @@ with gr.Blocks() as demo:
                 video_output = gr.Video(label="Video", visible=True)
                 audio_output = gr.Audio(label="Audio", visible=False)
                 transcription_output = gr.Textbox(label="Transcription", show_copy_button=True, show_label=True)
-                transcription_time_output = gr.Textbox(label="Transcription Time (s)")
+                stats_output = gr.Markdown(label="Stats")
                 download_output = gr.File(label="Download")
 
             clear_button.click(
@@ -643,7 +643,7 @@ with gr.Blocks() as demo:
             submit_button.click(
                 transcribe_chunked_audio,
                 inputs=[audio_input, language_input, timestamps_checkbox, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider],
-                outputs=[video_output,audio_output,transcription_output,transcription_time_output,download_output]
+                outputs=[video_output,audio_output,transcription_output,stats_output,download_output]
             )
 
     with gr.Tab("YouTube"):
@@ -679,7 +679,7 @@ with gr.Blocks() as demo:
                 yt_video_output = gr.Video(label="Video")
                 yt_audio_output = gr.Audio(label="Audio", visible=False)
                 yt_transcription_output = gr.Textbox(label="Transcription", show_copy_button=True, show_label=True)
-                yt_transcription_time_output = gr.Textbox(label="Transcription Time (s)")
+                yt_stats_output = gr.Markdown(label="Stats")
                 yt_download_output = gr.File(label="Download")
 
 
@@ -692,7 +692,7 @@ with gr.Blocks() as demo:
             submit_button2.click(
                 transcribe_chunked_audio,
                 inputs=[yt_input, yt_language_input, yt_timestamps_checkbox, num_beams_slider2, length_penalty_slider2, top_k_slider2, temperature_slider2],
-                outputs=[yt_video_output,yt_transcription_output,yt_transcription_output,gr.Markdown(label="Statistics"),yt_download_output]
+                outputs=[yt_video_output,yt_transcription_output,yt_stats_output,gr.Markdown(label="Statistics"),yt_download_output]
             )
 
     gr.Markdown(article)
