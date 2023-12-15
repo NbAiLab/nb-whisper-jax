@@ -525,10 +525,15 @@ if __name__ == "__main__":
         video_output = [file_path, subtitle_display] if file_path.endswith(".mp4") and subtitle_display else file_path
         audio_output = file_path if not file_path.endswith(".mp4") else None
 
-        # Format stats as Markdown list
-        stats_md = "### Statistics\n"
-        stats_md += "\n".join(f"- **{key.replace('_', ' ').title()}**: {value}" for key, value in stats.items())
+        # Format stats as a Markdown table
+        stats_md = "|Download|Preprocess|Length|Transcription|Words|Chars|Speed|\n"
+        stats_md += "|:-:|:-:|:-:|:-:|:-:|:-:|:-:|\n"  # Table column alignment
 
+        # Convert second-based measures to string with 's' appended
+        for key in ['download_time', 'preprocessing_time', 'audio_length', 'transcription_time']:
+            stats[key] = f"{stats[key]}s" if stats[key] != "N/A" else stats[key]
+
+        stats_md += f"|{stats['download_time']}|{stats['preprocessing_time']}|{stats['audio_length']}|{stats['transcription_time']}|{stats['word_count']}|{stats['char_count']}|{stats['speed']}|"
 
 
         # Return the outputs along with the stats as a string (for debugging)
