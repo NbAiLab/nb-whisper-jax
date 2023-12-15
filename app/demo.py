@@ -525,7 +525,7 @@ if __name__ == "__main__":
         audio_output = file_path if not file_path.endswith(".mp4") else None
 
         # Format stats as a Markdown table
-        stats_md = "|Length|Words|Download|Prepare|Transcribe|Speed|\n"
+        stats_md = "|Audio Length|Words|Download|Pre-processing|Transcribtion|Speed|\n"
         stats_md += "|:-:|:-:|:-:|:-:|:-:|:-:|\n"  # Corrected table column alignment
 
         # Convert second-based measures to string with 's' appended
@@ -630,7 +630,7 @@ with gr.Blocks() as demo:
                 video_output = gr.Video(label="Video", visible=True)
                 audio_output = gr.Audio(label="Audio", visible=False)
                 transcription_output = gr.Textbox(label="Transcription", show_copy_button=True, show_label=True)
-                with gr.Accordion(label="Statistics", open=False):
+                with gr.Accordion(label="Statistics", open=True):
                     stats_output = gr.Markdown()
                 download_output = gr.File(label="Download")
 
@@ -678,7 +678,8 @@ with gr.Blocks() as demo:
                 yt_video_output = gr.Video(label="Video")
                 yt_audio_output = gr.Audio(label="Audio", visible=False)
                 yt_transcription_output = gr.Textbox(label="Transcription", show_copy_button=True, show_label=True)
-                yt_stats_output = gr.Markdown(label="Statistics")
+                with gr.Accordion(label="Statistics", open=True):
+                    yt_stats_output = gr.Markdown()
                 yt_download_output = gr.File(label="Download")
 
 
