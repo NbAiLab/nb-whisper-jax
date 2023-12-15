@@ -505,7 +505,6 @@ if __name__ == "__main__":
         word_count = len(clean_text.split())
         char_count = len(clean_text)
         stats['word_count'] = f"{word_count:,}"
-        stats['char_count'] = f"{char_count:,}"
 
         # Calculate and format transcription speed
         if transcription_time > 0:
@@ -526,14 +525,14 @@ if __name__ == "__main__":
         audio_output = file_path if not file_path.endswith(".mp4") else None
 
         # Format stats as a Markdown table
-        stats_md = "|Download|Preprocess|Length|Transcription|Words|Chars|Speed|\n"
+        stats_md = "|Length|Words|Download|Prepare|Transcribe|Speed|\n"
         stats_md += "|:-:|:-:|:-:|:-:|:-:|:-:|:-:|\n"  # Table column alignment
 
         # Convert second-based measures to string with 's' appended
         for key in ['download_time', 'preprocessing_time', 'audio_length', 'transcription_time']:
             stats[key] = f"{stats[key]}s" if stats[key] != "N/A" else stats[key]
 
-        stats_md += f"|{stats['download_time']}|{stats['preprocessing_time']}|{stats['audio_length']}|{stats['transcription_time']}|{stats['word_count']}|{stats['char_count']}|{stats['speed']}|"
+        stats_md += f"{stats['audio_length']}|{stats['word_count']}|{stats['download_time']}|{stats['preprocessing_time']}|{stats['audio_length']}|{stats['transcription_time']}|{stats['speed']}|"
 
 
         # Return the outputs along with the stats as a string (for debugging)
