@@ -547,6 +547,7 @@ if __name__ == "__main__":
         else:
             transcript_file_path = None
             subtitle_display = None
+            clean_text = text
 
         word_count = len(clean_text.split())
         char_count = len(clean_text)
