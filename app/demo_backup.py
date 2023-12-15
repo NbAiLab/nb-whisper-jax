@@ -18,6 +18,7 @@ import tempfile
 import base64
 import subprocess
 from typing import Tuple
+import locale
 
 from whisper_jax import FlaxWhisperPipeline
 
@@ -450,53 +451,6 @@ if __name__ == "__main__":
 
 
 
-    def transcribe_chunked_audio_old(file_or_yt_url, language="Bokmål", return_timestamps=True, num_beams_slider=1, length_penalty_slider=1.0, top_k_slider=50, temperature_slider=1.0, progress=gr.Progress()):
-        task = "Verbatim"
-
-        if not file_or_yt_url:
-            raise gr.Error("No input provided. Please provide a file or a YouTube URL.")
-        elif isinstance(file_or_yt_url, str) and file_or_yt_url.startswith("http"):
-            # Handle YouTube URL input
-            yt_url = file_or_yt_url
-            progress(0, desc="Loading YouTube audio...")
-            logger.info("loading YouTube audio...")
-            tmpdirname = tempfile.mkdtemp()
-            video_filepath = download_yt_audio(yt_url, tmpdirname, video=return_timestamps)
-            file_contents, file_path = prepare_audio_for_transcription(video_filepath)
-        elif hasattr(file_or_yt_url, 'name'):
-            # Handle file upload
-            file_path = file_or_yt_url.name
-            file_contents, file_path = prepare_audio_for_transcription(file_path)
-        elif os.path.isfile(file_or_yt_url):
-            # Handle microphone input as file path
-            file_path = file_or_yt_url
-            file_contents, file_path = prepare_audio_for_transcription(file_path)
-        else:
-            raise gr.Error("Unknown error. Please report.")
-
-        # Perform transcription
-        text, runtime = perform_transcription(file_contents, language, task, return_timestamps,num_beams_slider,length_penalty_slider, top_k_slider, temperature_slider, progress)
-        
-        if return_timestamps:
-            transcript_file_path, subtitle_display = create_transcript_file(text, file_path, return_timestamps, transcription_style=task)
-        else:
-            transcript_file_path = None
-            subtitle_display = None
-
-        # Update video component with video file and subtitle file
-        if file_path.endswith(".mp4"):
-            # If subtitle_display is not None, include it in the value
-            video_output_value = [file_path, subtitle_display] if subtitle_display else file_path
-            video_output = video_output_value
-        else:
-            video_output = None
-
-        audio_output = file_path if not file_path.endswith(".mp4") else None
-
-        return video_output, audio_output, text, runtime, transcript_file_path
-
-
-
     def transcribe_chunked_audio(file_or_yt_url, language="Bokmål", return_timestamps=True, num_beams_slider=1, length_penalty_slider=1.0, top_k_slider=50, temperature_slider=1.0, progress=gr.Progress()):
         locale.setlocale(locale.LC_ALL, '')
         task = "Verbatim"
@@ -537,19 +491,20 @@ if __name__ == "__main__":
         transcription_start_time = time.time()
         text, runtime = perform_transcription(file_contents, language, task, return_timestamps, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider, progress)
         transcription_time = time.time() - transcription_start_time
+        stats['transcription_time'] = f"{transcription_time:.1f}"  # Add transcription time to stats
 
         # Handle timestamps in transcription text and create transcript file
         if return_timestamps:
             transcript_file_path, subtitle_display = create_transcript_file(text, file_path, return_timestamps, transcription_style=task)
             clean_text = re.sub(r"\[\d{2}:\d{2}:\d{2}\.\d{3} -> \d{2}:\d{2}:\d{2}\.\d{3}\] ", "", text)
         else:
-            transcript_file_path = create_transcript_file(text, file_path, return_timestamps, transcription_style=task)[0]
+            transcript_file_path = None
+            subtitle_display = None
             clean_text = text
 
         word_count = len(clean_text.split())
         char_count = len(clean_text)
         stats['word_count'] = f"{word_count:,}"
-        stats['char_count'] = f"{char_count:,}"
 
         # Calculate and format transcription speed
         if transcription_time > 0:
@@ -569,18 +524,19 @@ if __name__ == "__main__":
         video_output = [file_path, subtitle_display] if file_path.endswith(".mp4") and subtitle_display else file_path
         audio_output = file_path if not file_path.endswith(".mp4") else None
 
+        # Format stats as a Markdown table
+        stats_md = "|Audio Length|Words|Download|Pre-processing|Transcription|Speed|\n"
+        stats_md += "|:---:|:---:|:---:|:---:|:---:|:---:|\n"  # Updated table column alignment with three hyphens
+
+        # Convert second-based measures to string with 's' appended
+        for key in ['download_time', 'preprocessing_time', 'audio_length', 'transcription_time']:
+            stats[key] = f"{stats[key]}s" if stats[key] != "N/A" else stats[key]
+
+        stats_md += f"|{stats['audio_length']}|{stats['word_count']}|{stats['download_time']}|{stats['preprocessing_time']}|{stats['transcription_time']}|{stats['speed']}|"
+       
         # Return the outputs along with the stats as a string (for debugging)
-        return video_output, audio_output, text, runtime, transcript_file_path, str(stats)
+        return video_output, audio_output, text, str(stats_md), transcript_file_path
 
-
-
-    def _return_yt_html_embed(yt_url):
-        video_id = yt_url.split("?v=")[-1]
-        HTML_str = (
-            f'<center> <iframe width="500" height="320" src="https://www.youtube.com/embed/{video_id}"> </iframe>'
-            " </center>"
-        )
-        return HTML_str
 
 
     def download_yt_audio(yt_url, folder, video=False):
@@ -634,8 +590,6 @@ def update_sliders(num_beams):
     return length_penalty_update, top_k_update, temperature_update
 
 
-
-
 youtube_examples=[
     ["https://www.youtube.com/watch?v=_uv74o8hG30", "Bokmål", "Verbatim", True, False],
     ["https://www.youtube.com/watch?v=YcBWSBRuk0Q", "Bokmål", "Verbatim", True, False],
@@ -676,7 +630,8 @@ with gr.Blocks() as demo:
                 video_output = gr.Video(label="Video", visible=True)
                 audio_output = gr.Audio(label="Audio", visible=False)
                 transcription_output = gr.Textbox(label="Transcription", show_copy_button=True, show_label=True)
-                transcription_time_output = gr.Textbox(label="Transcription Time (s)")
+                with gr.Accordion(label="Statistics", open=True):
+                    stats_output = gr.Markdown()
                 download_output = gr.File(label="Download")
 
             clear_button.click(
@@ -687,7 +642,7 @@ with gr.Blocks() as demo:
             submit_button.click(
                 transcribe_chunked_audio,
                 inputs=[audio_input, language_input, timestamps_checkbox, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider],
-                outputs=[video_output,audio_output,transcription_output,transcription_time_output,download_output]
+                outputs=[video_output,audio_output,transcription_output,stats_output,download_output]
             )
 
     with gr.Tab("YouTube"):
@@ -712,7 +667,7 @@ with gr.Blocks() as demo:
                     clear_button2 = gr.Button("Clear")
                     submit_button2 = gr.Button("Submit", variant="primary")
                     
-                # Add examples for YouTube tab
+                #Add examples for YouTube tab
                 gr.Examples(
                     examples=youtube_examples,
                     inputs=[yt_input, yt_language_input, yt_timestamps_checkbox],
@@ -723,7 +678,8 @@ with gr.Blocks() as demo:
                 yt_video_output = gr.Video(label="Video")
                 yt_audio_output = gr.Audio(label="Audio", visible=False)
                 yt_transcription_output = gr.Textbox(label="Transcription", show_copy_button=True, show_label=True)
-                yt_transcription_time_output = gr.Textbox(label="Transcription Time (s)")
+                with gr.Accordion(label="Statistics", open=True):
+                    yt_stats_output = gr.Markdown()
                 yt_download_output = gr.File(label="Download")
 
 
@@ -736,8 +692,9 @@ with gr.Blocks() as demo:
             submit_button2.click(
                 transcribe_chunked_audio,
                 inputs=[yt_input, yt_language_input, yt_timestamps_checkbox, num_beams_slider2, length_penalty_slider2, top_k_slider2, temperature_slider2],
-                outputs=[yt_video_output,yt_transcription_output,yt_transcription_output,yt_transcription_time_output,yt_download_output]
+                outputs=[yt_video_output, yt_transcription_output, yt_stats_output, yt_download_output]
             )
+
     gr.Markdown(article)
     
 
