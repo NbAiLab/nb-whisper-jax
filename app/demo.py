@@ -526,15 +526,14 @@ if __name__ == "__main__":
 
         # Format stats as a Markdown table
         stats_md = "|Length|Words|Download|Prepare|Transcribe|Speed|\n"
-        stats_md += "|:-:|:-:|:-:|:-:|:-:|:-:|:-:|\n"  # Table column alignment
+        stats_md += "|:-:|:-:|:-:|:-:|:-:|:-:|\n"  # Corrected table column alignment
 
         # Convert second-based measures to string with 's' appended
         for key in ['download_time', 'preprocessing_time', 'audio_length', 'transcription_time']:
             stats[key] = f"{stats[key]}s" if stats[key] != "N/A" else stats[key]
 
-        stats_md += f"{stats['audio_length']}|{stats['word_count']}|{stats['download_time']}|{stats['preprocessing_time']}|{stats['transcription_time']}|{stats['speed']}|"
-
-
+        stats_md += f"|{stats['audio_length']}|{stats['word_count']}|{stats['download_time']}|{stats['preprocessing_time']}|{stats['transcription_time']}|{stats['speed']}|"
+       
         # Return the outputs along with the stats as a string (for debugging)
         return video_output, audio_output, text, str(stats_md), transcript_file_path
 
