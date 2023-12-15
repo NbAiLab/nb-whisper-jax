@@ -630,7 +630,7 @@ with gr.Blocks() as demo:
                 video_output = gr.Video(label="Video", visible=True)
                 audio_output = gr.Audio(label="Audio", visible=False)
                 transcription_output = gr.Textbox(label="Transcription", show_copy_button=True, show_label=True)
-                with gr.Group(style={"border": "1px solid #ccc", "border-radius": "5px", "padding": "10px", "box-shadow": "0 2px 6px 0 rgba(0,0,0,0.1)"}):
+                with gr.Accordion(label="Statistics", open=False):
                     stats_output = gr.Markdown()
                 download_output = gr.File(label="Download")
 
