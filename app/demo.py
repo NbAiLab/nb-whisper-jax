@@ -571,7 +571,7 @@ if __name__ == "__main__":
         audio_output = file_path if not file_path.endswith(".mp4") else None
 
         # Return the outputs along with the stats as a string (for debugging)
-        return video_output, audio_output, text, runtime, transcript_file_path, str(stats)
+        return video_output, audio_output, text, str(stats), transcript_file_path
 
 
 
