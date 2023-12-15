@@ -18,6 +18,7 @@ import tempfile
 import base64
 import subprocess
 from typing import Tuple
+import locale
 
 from whisper_jax import FlaxWhisperPipeline
 
@@ -450,14 +451,12 @@ if __name__ == "__main__":
 
 
 
-    def transcribe_chunked_audio(file_or_yt_url, language="Bokmål", return_timestamps=True, num_beams_slider=1, length_penalty_slider=1.0, top_k_slider=50, temperature_slider=1.0, progress=gr.Progress()):
+    def transcribe_chunked_audio_old(file_or_yt_url, language="Bokmål", return_timestamps=True, num_beams_slider=1, length_penalty_slider=1.0, top_k_slider=50, temperature_slider=1.0, progress=gr.Progress()):
         task = "Verbatim"
 
         if not file_or_yt_url:
             raise gr.Error("No input provided. Please provide a file or a YouTube URL.")
-
-
-        if isinstance(file_or_yt_url, str) and file_or_yt_url.startswith("http"):
+        elif isinstance(file_or_yt_url, str) and file_or_yt_url.startswith("http"):
             # Handle YouTube URL input
             yt_url = file_or_yt_url
             progress(0, desc="Loading YouTube audio...")
@@ -474,7 +473,7 @@ if __name__ == "__main__":
             file_path = file_or_yt_url
             file_contents, file_path = prepare_audio_for_transcription(file_path)
         else:
-            raise gr.Error("Invalid input: not a YouTube URL, file upload, or microphone file path.")
+            raise gr.Error("Unknown error. Please report.")
 
         # Perform transcription
         text, runtime = perform_transcription(file_contents, language, task, return_timestamps,num_beams_slider,length_penalty_slider, top_k_slider, temperature_slider, progress)
@@ -496,6 +495,85 @@ if __name__ == "__main__":
         audio_output = file_path if not file_path.endswith(".mp4") else None
 
         return video_output, audio_output, text, runtime, transcript_file_path
+
+
+
+    def transcribe_chunked_audio(file_or_yt_url, language="Bokmål", return_timestamps=True, num_beams_slider=1, length_penalty_slider=1.0, top_k_slider=50, temperature_slider=1.0, progress=gr.Progress()):
+        locale.setlocale(locale.LC_ALL, '')
+        task = "Verbatim"
+        stats = {}
+
+        if not file_or_yt_url:
+            raise gr.Error("No input provided. Please provide a file or a YouTube URL.")
+
+        # Handling different input types
+        download_start_time = time.time()
+        if isinstance(file_or_yt_url, str) and file_or_yt_url.startswith("http"):
+            # Handle YouTube URL input
+            yt_url = file_or_yt_url
+            progress(0, desc="Loading YouTube audio...")
+            logger.info("loading YouTube audio...")
+            tmpdirname = tempfile.mkdtemp()
+            video_filepath = download_yt_audio(yt_url, tmpdirname, video=return_timestamps)
+            file_contents, file_path = prepare_audio_for_transcription(video_filepath)
+            download_time = time.time() - download_start_time
+        else:
+            # Handle file upload or microphone input
+            file_contents, file_path = prepare_audio_for_transcription(file_or_yt_url if hasattr(file_or_yt_url, 'name') else file_or_yt_url)
+            download_time = 0.0  # No download time for non-YouTube inputs
+
+        stats['download_time'] = f"{download_time:.1f}"
+
+        # Preprocessing audio file
+        preprocessing_start_time = time.time()
+        audio = AudioSegment.from_file(file_path)
+        preprocessing_time = time.time() - preprocessing_start_time
+        stats['preprocessing_time'] = f"{preprocessing_time:.1f}"
+
+        # Audio length in seconds
+        audio_length = len(audio) / 1000.0  # Convert milliseconds to seconds
+        stats['audio_length'] = f"{audio_length:.1f}"
+
+        # Perform transcription
+        transcription_start_time = time.time()
+        text, runtime = perform_transcription(file_contents, language, task, return_timestamps, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider, progress)
+        transcription_time = time.time() - transcription_start_time
+
+        # Handle timestamps in transcription text and create transcript file
+        if return_timestamps:
+            transcript_file_path, subtitle_display = create_transcript_file(text, file_path, return_timestamps, transcription_style=task)
+            clean_text = re.sub(r"\[\d{2}:\d{2}:\d{2}\.\d{3} -> \d{2}:\d{2}:\d{2}\.\d{3}\] ", "", text)
+        else:
+            transcript_file_path = create_transcript_file(text, file_path, return_timestamps, transcription_style=task)[0]
+            clean_text = text
+
+        word_count = len(clean_text.split())
+        char_count = len(clean_text)
+        stats['word_count'] = f"{word_count:,}"
+        stats['char_count'] = f"{char_count:,}"
+
+        # Calculate and format transcription speed
+        if transcription_time > 0:
+            speed = round(audio_length / transcription_time)
+            stats['speed'] = f"{speed}x"
+        else:
+            stats['speed'] = "N/A"
+
+        # Convert all stats to strings with thousand separators
+        for key, value in stats.items():
+            if isinstance(value, float):
+                stats[key] = f"{value:,.1f}"
+            elif isinstance(value, int):
+                stats[key] = f"{value:,}"
+
+        # Update video and audio components based on the file type
+        video_output = [file_path, subtitle_display] if file_path.endswith(".mp4") and subtitle_display else file_path
+        audio_output = file_path if not file_path.endswith(".mp4") else None
+
+        # Return the outputs along with the stats as a string (for debugging)
+        return video_output, audio_output, text, runtime, transcript_file_path, str(stats)
+
+
 
     def _return_yt_html_embed(yt_url):
         video_id = yt_url.split("?v=")[-1]
@@ -572,7 +650,7 @@ youtube_examples=[
 ]
 with gr.Blocks() as demo:
     gr.Image("NB-logo-eng-farge.png", show_label=False, interactive=False, height=100, container=False)
-    gr.Markdown(f"<h1 style='text-align: center;'>{title}</h1>")
+    gr.Markdown(f"<h1 style='text-align: center;color: #C10A26'>{title}</h1>")
     with gr.Tab("Audio"):
         with gr.Row():
             with gr.Column():
