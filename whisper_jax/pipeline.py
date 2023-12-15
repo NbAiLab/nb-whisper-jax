@@ -43,6 +43,7 @@ class FlaxWhisperFeatureExtractor(WhisperFeatureExtractor):
         computes stft filter banks approx 5x faster than its numpy counterpart, which is the native implementation
         in transformers, and matches to within 1e-5 abs tolerance.
         """
+        logger.info("Using the fast feature extractor")
         waveform = torch.from_numpy(waveform).type(torch.float32)
 
         window = torch.hann_window(self.n_fft)
