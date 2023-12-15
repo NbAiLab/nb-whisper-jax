@@ -694,7 +694,7 @@ with gr.Blocks() as demo:
             submit_button2.click(
                 transcribe_chunked_audio,
                 inputs=[yt_input, yt_language_input, yt_timestamps_checkbox, num_beams_slider2, length_penalty_slider2, top_k_slider2, temperature_slider2],
-                outputs=[yt_video_output, yt_transcription_output, yt_stats_output, yt_download_output]
+                outputs=[yt_video_output,yt_audio_output,yt_transcription_output,yt_stats_output,yt_download_output]
             )
 
     gr.Markdown(article)
