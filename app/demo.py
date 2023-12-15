@@ -603,7 +603,7 @@ youtube_examples=[
     
 ]
 with gr.Blocks() as demo:
-    gr.Image("NB-logo-eng-farge.png", show_label=False, interactive=False, container=False)
+    gr.Image("NB-logo-eng-farge.png", show_label=False, height=100, interactive=False, container=False)
     gr.Markdown(f"<h1 style='text-align: center;color: #C10A26'>{title}</h1>")
     with gr.Tab("Audio"):
         with gr.Row():
