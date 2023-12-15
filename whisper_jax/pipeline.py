@@ -34,9 +34,9 @@ from .modeling_flax_whisper import FlaxWhisperForConditionalGeneration
 
 
 logger = logging.get_logger(__name__)
-logger.info("Using the pipeline from Distil Whisper")
+print("Using the pipeline from Distil Whisper")
 
-cccc
+
 class FlaxWhisperFeatureExtractor(WhisperFeatureExtractor):
     def _np_extract_fbank_features(self, waveform: np.array) -> np.ndarray:
         """
@@ -44,7 +44,7 @@ class FlaxWhisperFeatureExtractor(WhisperFeatureExtractor):
         computes stft filter banks approx 5x faster than its numpy counterpart, which is the native implementation
         in transformers, and matches to within 1e-5 abs tolerance.
         """
-        logger.info("Using the fast feature extractor")
+        print("Using the fast feature extractor")
         waveform = torch.from_numpy(waveform).type(torch.float32)
 
         window = torch.hann_window(self.n_fft)
