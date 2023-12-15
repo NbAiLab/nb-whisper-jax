@@ -679,7 +679,7 @@ with gr.Blocks() as demo:
                 yt_audio_output = gr.Audio(label="Audio", visible=False)
                 yt_transcription_output = gr.Textbox(label="Transcription", show_copy_button=True, show_label=True)
                 #with gr.Accordion(label="Statistics", open=True):
-                #    yt_stats_output = gr.Markdown()
+                yt_stats_output = gr.Markdown()
                 yt_download_output = gr.File(label="Download")
 
 
