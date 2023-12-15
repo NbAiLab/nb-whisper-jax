@@ -534,7 +534,6 @@ if __name__ == "__main__":
 
         stats_md += f"|{stats['audio_length']}|{stats['word_count']}|{stats['download_time']}|{stats['preprocessing_time']}|{stats['transcription_time']}|{stats['speed']}|"
 
-        breakpoint()
 
         # Return the outputs along with the stats as a string (for debugging)
         return video_output, audio_output, text, str(stats_md), transcript_file_path
