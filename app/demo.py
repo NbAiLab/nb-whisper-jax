@@ -667,19 +667,19 @@ with gr.Blocks() as demo:
                     clear_button2 = gr.Button("Clear")
                     submit_button2 = gr.Button("Submit", variant="primary")
                     
-                # Add examples for YouTube tab
-                #gr.Examples(
-                #    examples=youtube_examples,
-                ##    inputs=[yt_input, yt_language_input, yt_timestamps_checkbox],
-                #    cache_examples=False
-                #)
+                #Add examples for YouTube tab
+                gr.Examples(
+                    examples=youtube_examples,
+                    inputs=[yt_input, yt_language_input, yt_timestamps_checkbox],
+                    cache_examples=False
+                )
 
             with gr.Column():
                 yt_video_output = gr.Video(label="Video")
                 yt_audio_output = gr.Audio(label="Audio", visible=False)
                 yt_transcription_output = gr.Textbox(label="Transcription", show_copy_button=True, show_label=True)
-                #with gr.Accordion(label="Statistics", open=True):
-                yt_stats_output = gr.Markdown()
+                with gr.Accordion(label="Statistics", open=True):
+                    yt_stats_output = gr.Markdown()
                 yt_download_output = gr.File(label="Download")
 
 
