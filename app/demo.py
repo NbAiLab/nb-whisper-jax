@@ -525,15 +525,14 @@ if __name__ == "__main__":
         video_output = [file_path, subtitle_display] if file_path.endswith(".mp4") and subtitle_display else file_path
         audio_output = file_path if not file_path.endswith(".mp4") else None
 
-        # Format stats as HTML table
-        stats_html = "<table>"
-        for key, value in stats.items():
-            stats_html += f"<tr><td>{key.replace('_', ' ').title()}</td><td>{value}</td></tr>"
-        stats_html += "</table>"
+        # Format stats as Markdown list
+        stats_md = "### Statistics\n"
+        stats_md += "\n".join(f"- **{key.replace('_', ' ').title()}**: {value}" for key, value in stats.items())
+
 
 
         # Return the outputs along with the stats as a string (for debugging)
-        return video_output, audio_output, text, str(stats_html), transcript_file_path
+        return video_output, audio_output, text, str(stats_md), transcript_file_path
 
 
 
