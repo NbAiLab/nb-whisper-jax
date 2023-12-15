@@ -545,8 +545,8 @@ if __name__ == "__main__":
             transcript_file_path, subtitle_display = create_transcript_file(text, file_path, return_timestamps, transcription_style=task)
             clean_text = re.sub(r"\[\d{2}:\d{2}:\d{2}\.\d{3} -> \d{2}:\d{2}:\d{2}\.\d{3}\] ", "", text)
         else:
-            transcript_file_path = create_transcript_file(text, file_path, return_timestamps, transcription_style=task)[0]
-            clean_text = text
+            transcript_file_path = None
+            subtitle_display = None
 
         word_count = len(clean_text.split())
         char_count = len(clean_text)
