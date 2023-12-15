@@ -451,7 +451,7 @@ if __name__ == "__main__":
 
 
 
-    def transcribe_chunked_audio(file_or_yt_url, language="Bokmål", return_timestamps=True, num_beams_slider=1, length_penalty_slider=1.0, top_k_slider=50, temperature_slider=1.0, progress=gr.Progress()):
+    def transcribe_chunked_audio_old(file_or_yt_url, language="Bokmål", return_timestamps=True, num_beams_slider=1, length_penalty_slider=1.0, top_k_slider=50, temperature_slider=1.0, progress=gr.Progress()):
         task = "Verbatim"
 
         if not file_or_yt_url:
@@ -498,7 +498,7 @@ if __name__ == "__main__":
 
 
 
-    def transcribe_chunked_audio_new(file_or_yt_url, language="Bokmål", return_timestamps=True, num_beams_slider=1, length_penalty_slider=1.0, top_k_slider=50, temperature_slider=1.0, progress=gr.Progress()):
+    def transcribe_chunked_audio(file_or_yt_url, language="Bokmål", return_timestamps=True, num_beams_slider=1, length_penalty_slider=1.0, top_k_slider=50, temperature_slider=1.0, progress=gr.Progress()):
         locale.setlocale(locale.LC_ALL, '')
         task = "Verbatim"
         stats = {}
