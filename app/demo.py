@@ -668,11 +668,11 @@ with gr.Blocks() as demo:
                     submit_button2 = gr.Button("Submit", variant="primary")
                     
                 # Add examples for YouTube tab
-                gr.Examples(
-                    examples=youtube_examples,
-                    inputs=[yt_input, yt_language_input, yt_timestamps_checkbox],
-                    cache_examples=False
-                )
+                #gr.Examples(
+                #    examples=youtube_examples,
+                ##    inputs=[yt_input, yt_language_input, yt_timestamps_checkbox],
+                #    cache_examples=False
+                #)
 
             with gr.Column():
                 yt_video_output = gr.Video(label="Video")
