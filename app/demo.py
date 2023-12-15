@@ -74,10 +74,6 @@ YT_LENGTH_LIMIT_S = 10800  # limit to 3 hour YouTube files
 
 description = ""
 
-article = f"Submit feedback [here](https://forms.gle/cCQzdox9N2ENDczV7). Backend running JAX on a TPU v3 through support from the " \
-          f"[TRC](https://sites.research.google/trc/about/) programme. " \
-          f"Whisper JAX [code](https://github.com/sanchit-gandhi/whisper-jax) and Gradio demo by 🤗 Hugging Face."
-
 article = """
 <div style='text-align: center;'>
 Submit feedback <a href='https://forms.gle/cCQzdox9N2ENDczV7'>here</a>. Backend running JAX on a TPU v3 through support from the 
@@ -456,6 +452,10 @@ if __name__ == "__main__":
 
     def transcribe_chunked_audio(file_or_yt_url, language="Bokmål", return_timestamps=True, num_beams_slider=1, length_penalty_slider=1.0, top_k_slider=50, temperature_slider=1.0, progress=gr.Progress()):
         task = "Verbatim"
+
+        if not file_or_yt_url:
+            raise gr.Error("No input provided. Please provide a file or a YouTube URL.")
+
 
         if isinstance(file_or_yt_url, str) and file_or_yt_url.startswith("http"):
             # Handle YouTube URL input
