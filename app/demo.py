@@ -538,6 +538,7 @@ if __name__ == "__main__":
         transcription_start_time = time.time()
         text, runtime = perform_transcription(file_contents, language, task, return_timestamps, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider, progress)
         transcription_time = time.time() - transcription_start_time
+        stats['transcription_time'] = f"{transcription_time:.1f}"  # Add transcription time to stats
 
         # Handle timestamps in transcription text and create transcript file
         if return_timestamps:
