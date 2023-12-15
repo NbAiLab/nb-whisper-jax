@@ -525,8 +525,8 @@ if __name__ == "__main__":
         audio_output = file_path if not file_path.endswith(".mp4") else None
 
         # Format stats as a Markdown table
-        stats_md = "|Audio Length|Words|Download|Pre-processing|Transcribtion|Speed|\n"
-        stats_md += "|:-:|:-:|:-:|:-:|:-:|:-:|\n"  # Corrected table column alignment
+        stats_md = "|Audio Length|Words|Download|Pre-processing|Transcription|Speed|\n"
+        stats_md += "|:---:|:---:|:---:|:---:|:---:|:---:|\n"  # Updated table column alignment with three hyphens
 
         # Convert second-based measures to string with 's' appended
         for key in ['download_time', 'preprocessing_time', 'audio_length', 'transcription_time']:
