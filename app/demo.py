@@ -677,7 +677,7 @@ with gr.Blocks() as demo:
                 yt_video_output = gr.Video(label="Video")
                 yt_audio_output = gr.Audio(label="Audio", visible=False)
                 yt_transcription_output = gr.Textbox(label="Transcription", show_copy_button=True, show_label=True)
-                yt_stats_output = gr.Markdown(label="Stats")
+                yt_stats_output = gr.Markdown(label="Statistics", style={"width": "100%", "margin": "0 auto", "box-shadow": "0 2px 6px 0 rgba(0,0,0,0.2)", "border-radius": "8px", "padding": "10px"}), 
                 yt_download_output = gr.File(label="Download")
 
 
