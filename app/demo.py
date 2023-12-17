@@ -449,12 +449,12 @@ if __name__ == "__main__":
         return transcript_file_path, subtitle_display
 
 
-    def perform_transcription(file_contents, language, task, return_timestamps, chunk_length, num_beams,length_penalty, top_k, temperature, progress):
+    def perform_transcription(file_contents, language, task, return_timestamps, chunk_length_s, num_beams,length_penalty, top_k, temperature, progress):
         inputs = ffmpeg_read(file_contents, pipeline.feature_extractor.sampling_rate)
         inputs = {"array": inputs, "sampling_rate": pipeline.feature_extractor.sampling_rate}
         logger.info("done loading")
         
-        text, runtime = tqdm_generate(inputs, language=language, task=task, return_timestamps=return_timestamps, chunk_length=chunk_length, num_beams=num_beams,length_penalty=length_penalty, top_k=top_k, temperature=temperature,
+        text, runtime = tqdm_generate(inputs, language=language, task=task, return_timestamps=return_timestamps, chunk_length_s=chunk_length_s, num_beams=num_beams,length_penalty=length_penalty, top_k=top_k, temperature=temperature,
                                       progress=progress)
         return text, runtime
 
