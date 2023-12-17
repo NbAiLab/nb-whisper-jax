@@ -68,7 +68,6 @@ title = title.replace("Nb Whisper", "NB-Whisper")
 title = title.replace("Beta", "(beta)")
 title = title.replace("Rc", "RC")
 
-CHUNK_LENGTH_S = 25
 NUM_PROC = 32
 FILE_LIMIT_MB = 1000
 YT_LENGTH_LIMIT_S = 10800  # limit to 3 hour YouTube files
@@ -461,7 +460,7 @@ if __name__ == "__main__":
 
 
 
-    def transcribe_chunked_audio(file_or_yt_url, language="Bokmål", return_timestamps=True, chunk_length_slider=25, num_beams_slider=1, length_penalty_slider=1.0, top_k_slider=50, temperature_slider=1.0, progress=gr.Progress()):
+    def transcribe_chunked_audio(file_or_yt_url, language="Bokmål", return_timestamps=True, chunk_length_slider=28, num_beams_slider=1, length_penalty_slider=1.0, top_k_slider=50, temperature_slider=1.0, progress=gr.Progress()):
         locale.setlocale(locale.LC_ALL, '')
         task = "Verbatim"
         stats = {}
@@ -587,7 +586,7 @@ if __name__ == "__main__":
 
 def clear(audio, language, timestamps_checkbox, chunk_length_s, num_beams, length_penalty, top_k, temperature, transcription):
     # Reset all fields to their default values
-    return None, "Bokmål", True, 25, 1, 1.0, 50, 1.0, 28, ""
+    return None, "Bokmål", True, 28, 1, 1.0, 50, 1.0, ""
 
 def update_sliders(num_beams):
     # Update length_penalty_slider
@@ -624,7 +623,7 @@ with gr.Blocks() as demo:
                 timestamps_checkbox = gr.Checkbox(value=True, label="Return timestamps")
 
                 with gr.Accordion(label="Advanced Options", open=False):
-                    chunk_length_slider = gr.Slider(minimum=10, maximum=30, step=1, label="Chunk Length", value=25)
+                    chunk_length_slider = gr.Slider(minimum=10, maximum=30, step=1, label="Chunk Length", value=28)
                     num_beams_slider = gr.Slider(minimum=1, maximum=10, step=1, label="Number of Beams", value=1)
                     length_penalty_slider = gr.Slider(minimum=0.1, maximum=2.0, step=0.1, label="Length Penalty", value=1.0, visible=False)
                     top_k_slider = gr.Slider(minimum=1, maximum=100, step=1, label="Top K", value=50)
@@ -666,7 +665,7 @@ with gr.Blocks() as demo:
                 yt_timestamps_checkbox = gr.Checkbox(value=True, label="Return timestamps")
                 
                 with gr.Accordion(label="Advanced Options", open=False):
-                    chunk_length_slider2 = gr.Slider(minimum=10, maximum=30, step=1, label="Chunk Length", value=25)
+                    chunk_length_slider2 = gr.Slider(minimum=10, maximum=30, step=1, label="Chunk Length", value=28)
                     num_beams_slider2 = gr.Slider(minimum=1, maximum=10, step=1, label="Number of Beams", value=1)
                     length_penalty_slider2 = gr.Slider(minimum=0.1, maximum=2.0, step=0.1, label="Length Penalty", value=1.0, visible=False)
                     top_k_slider2 = gr.Slider(minimum=1, maximum=100, step=1, label="Top K", value=50)
