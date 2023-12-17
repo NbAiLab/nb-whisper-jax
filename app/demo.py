@@ -299,8 +299,8 @@ if __name__ == "__main__":
 
     def tqdm_generate(inputs: dict, language: str, task: str, return_timestamps: bool, chunk_length_s: int, num_beams: int,length_penalty: bool, top_k: int, temperature: bool, progress: gr.Progress) -> Tuple[
         str, float]:
-        stride_length_s = CHUNK_LENGTH_S / 6
-        chunk_len = round(CHUNK_LENGTH_S * pipeline.feature_extractor.sampling_rate)
+        stride_length_s = chunk_length_s / 6
+        chunk_len = round(chunk_length_s * pipeline.feature_extractor.sampling_rate)
         stride_left = stride_right = round(stride_length_s * pipeline.feature_extractor.sampling_rate)
         step = chunk_len - stride_left - stride_right
        
