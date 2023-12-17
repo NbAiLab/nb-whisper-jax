@@ -585,9 +585,9 @@ if __name__ == "__main__":
         return fpath
 
 
-def clear(audio, language, timestamps_checkbox, num_beams, length_penalty, top_k, temperature, transcription):
+def clear(audio, language, timestamps_checkbox, chunk_length_s, num_beams, length_penalty, top_k, temperature, transcription):
     # Reset all fields to their default values
-    return None, "Bokmål", True, 1, 1.0, 50, 1.0, 28, ""
+    return None, "Bokmål", True, 25, 1, 1.0, 50, 1.0, 28, ""
 
 def update_sliders(num_beams):
     # Update length_penalty_slider
