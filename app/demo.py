@@ -280,11 +280,8 @@ def format_timestamp(seconds: float, always_include_hours: bool = True, decimal_
 
 if __name__ == "__main__":
     pipeline = FlaxWhisperPipeline(checkpoint, dtype=jnp.bfloat16, batch_size=BATCH_SIZE)
-    stride_length_s = CHUNK_LENGTH_S / 6
-    chunk_len = round(CHUNK_LENGTH_S * pipeline.feature_extractor.sampling_rate)
-    stride_left = stride_right = round(stride_length_s * pipeline.feature_extractor.sampling_rate)
-    step = chunk_len - stride_left - stride_right
-    pool = Pool(NUM_PROC)
+
+     pool = Pool(NUM_PROC)
 
     # do a pre-compile step so that the first user to use the demo isn't hit with a long transcription time
     logger.info("compiling forward call...")
@@ -303,6 +300,11 @@ if __name__ == "__main__":
 
     def tqdm_generate(inputs: dict, language: str, task: str, return_timestamps: bool, chunk_length_s: int, num_beams: int,length_penalty: bool, top_k: int, temperature: bool, progress: gr.Progress) -> Tuple[
         str, float]:
+        stride_length_s = CHUNK_LENGTH_S / 6
+        chunk_len = round(CHUNK_LENGTH_S * pipeline.feature_extractor.sampling_rate)
+        stride_left = stride_right = round(stride_length_s * pipeline.feature_extractor.sampling_rate)
+        step = chunk_len - stride_left - stride_right
+       
         inputs_len = inputs["array"].shape[0]
         all_chunk_start_idx = np.arange(0, inputs_len, step)
         num_samples = len(all_chunk_start_idx)
