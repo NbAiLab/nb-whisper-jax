@@ -280,8 +280,7 @@ def format_timestamp(seconds: float, always_include_hours: bool = True, decimal_
 
 if __name__ == "__main__":
     pipeline = FlaxWhisperPipeline(checkpoint, dtype=jnp.bfloat16, batch_size=BATCH_SIZE)
-
-     pool = Pool(NUM_PROC)
+    pool = Pool(NUM_PROC)
 
     # do a pre-compile step so that the first user to use the demo isn't hit with a long transcription time
     logger.info("compiling forward call...")
