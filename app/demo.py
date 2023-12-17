@@ -301,7 +301,7 @@ if __name__ == "__main__":
     logger.info(f"compiled in {compile_time}s")
 
 
-    def tqdm_generate(inputs: dict, language: str, task: str, return_timestamps: bool, num_beams: int,length_penalty: bool, top_k: int, temperature: bool, progress: gr.Progress) -> Tuple[
+    def tqdm_generate(inputs: dict, language: str, task: str, return_timestamps: bool, chunk_length_s: int, num_beams: int,length_penalty: bool, top_k: int, temperature: bool, progress: gr.Progress) -> Tuple[
         str, float]:
         inputs_len = inputs["array"].shape[0]
         all_chunk_start_idx = np.arange(0, inputs_len, step)
@@ -309,7 +309,7 @@ if __name__ == "__main__":
         num_batches = math.ceil(num_samples / BATCH_SIZE)
         dummy_batches = list(range(num_batches))  # Gradio progress bar not compatible with generator
 
-        dataloader = pipeline.preprocess_batch(inputs, chunk_length_s=CHUNK_LENGTH_S, batch_size=BATCH_SIZE)
+        dataloader = pipeline.preprocess_batch(inputs, chunk_length_s=chunk_length_s, batch_size=BATCH_SIZE)
         progress(0, desc="Pre-processing audio file...")
         logger.info("pre-processing audio file...")
         dataloader = pool.map(identity, dataloader)
@@ -323,7 +323,6 @@ if __name__ == "__main__":
             language = "<|en|>"
 
         start_time = time.time()
-        logger.info(f"Starting task: {task}... language: {language}")
         verbatim_outputs = []
         semantic_outputs = []
 
@@ -351,6 +350,7 @@ if __name__ == "__main__":
                 length_penalty = max(0.0, float(length_penalty))
                 temperature = max(0.0, float(temperature))
 
+                logger.info(f"Transcribing task: {task}, language: {language}, return_timestamps: {return_timestamps}, chunk_length_s: {chunk_length_s}, num_beams: {num_beams}, length_penalty: {length_penalty}, top_k: {top_k}, temperature: {temperature}")
 
                 verbatim_outputs.append(
                     pipeline.forward(batch, batch_size=BATCH_SIZE, task="transcribe", language=language,
@@ -449,18 +449,18 @@ if __name__ == "__main__":
         return transcript_file_path, subtitle_display
 
 
-    def perform_transcription(file_contents, language, task, return_timestamps, num_beams,length_penalty, top_k, temperature, progress):
+    def perform_transcription(file_contents, language, task, return_timestamps, chunk_length, num_beams,length_penalty, top_k, temperature, progress):
         inputs = ffmpeg_read(file_contents, pipeline.feature_extractor.sampling_rate)
         inputs = {"array": inputs, "sampling_rate": pipeline.feature_extractor.sampling_rate}
         logger.info("done loading")
         
-        text, runtime = tqdm_generate(inputs, language=language, task=task, return_timestamps=return_timestamps, num_beams=num_beams,length_penalty=length_penalty, top_k=top_k, temperature=temperature,
+        text, runtime = tqdm_generate(inputs, language=language, task=task, return_timestamps=return_timestamps, chunk_length=chunk_length, num_beams=num_beams,length_penalty=length_penalty, top_k=top_k, temperature=temperature,
                                       progress=progress)
         return text, runtime
 
 
 
-    def transcribe_chunked_audio(file_or_yt_url, language="Bokmål", return_timestamps=True, num_beams_slider=1, length_penalty_slider=1.0, top_k_slider=50, temperature_slider=1.0, progress=gr.Progress()):
+    def transcribe_chunked_audio(file_or_yt_url, language="Bokmål", return_timestamps=True, chunk_length_slider=25, num_beams_slider=1, length_penalty_slider=1.0, top_k_slider=50, temperature_slider=1.0, progress=gr.Progress()):
         locale.setlocale(locale.LC_ALL, '')
         task = "Verbatim"
         stats = {}
@@ -498,7 +498,7 @@ if __name__ == "__main__":
 
         # Perform transcription
         transcription_start_time = time.time()
-        text, runtime = perform_transcription(file_contents, language, task, return_timestamps, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider, progress)
+        text, runtime = perform_transcription(file_contents, language, task, return_timestamps, chunk_length_slider, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider, progress)
         transcription_time = time.time() - transcription_start_time
         stats['transcription_time'] = f"{transcription_time:.1f}"  # Add transcription time to stats
 
@@ -584,7 +584,7 @@ if __name__ == "__main__":
         return fpath
 
 
-def clear(audio, language, timestamps_checkbox, num_beams, length_penalty, top_k, temperature, chunk_length_s, transcription):
+def clear(audio, language, timestamps_checkbox, num_beams, length_penalty, top_k, temperature, transcription):
     # Reset all fields to their default values
     return None, "Bokmål", True, 1, 1.0, 50, 1.0, 28, ""
 
@@ -623,6 +623,7 @@ with gr.Blocks() as demo:
                 timestamps_checkbox = gr.Checkbox(value=True, label="Return timestamps")
 
                 with gr.Accordion(label="Advanced Options", open=False):
+                    chunk_length_slider = gr.Slider(minimum=10, maximum=30, step=1, label="Chunk Length", value=25)
                     num_beams_slider = gr.Slider(minimum=1, maximum=10, step=1, label="Number of Beams", value=1)
                     length_penalty_slider = gr.Slider(minimum=0.1, maximum=2.0, step=0.1, label="Length Penalty", value=1.0, visible=False)
                     top_k_slider = gr.Slider(minimum=1, maximum=100, step=1, label="Top K", value=50)
@@ -646,12 +647,12 @@ with gr.Blocks() as demo:
 
             clear_button.click(
                 clear,
-                inputs=[audio_input, language_input, timestamps_checkbox, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider, transcription_output],
-                outputs=[audio_input, language_input, timestamps_checkbox, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider, transcription_output]
+                inputs=[audio_input, language_input, timestamps_checkbox, chunk_length_slider, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider, transcription_output],
+                outputs=[audio_input, language_input, timestamps_checkbox, chunk_length_slider, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider, transcription_output]
             )
             submit_button.click(
                 transcribe_chunked_audio,
-                inputs=[audio_input, language_input, timestamps_checkbox, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider],
+                inputs=[audio_input, language_input, timestamps_checkbox, chunk_length_slider, num_beams_slider, length_penalty_slider, top_k_slider, temperature_slider],
                 outputs=[video_output,audio_output,transcription_output,stats_output,download_output]
             )
 
@@ -664,6 +665,7 @@ with gr.Blocks() as demo:
                 yt_timestamps_checkbox = gr.Checkbox(value=True, label="Return timestamps")
                 
                 with gr.Accordion(label="Advanced Options", open=False):
+                    chunk_length_slider2 = gr.Slider(minimum=10, maximum=30, step=1, label="Chunk Length", value=25)
                     num_beams_slider2 = gr.Slider(minimum=1, maximum=10, step=1, label="Number of Beams", value=1)
                     length_penalty_slider2 = gr.Slider(minimum=0.1, maximum=2.0, step=0.1, label="Length Penalty", value=1.0, visible=False)
                     top_k_slider2 = gr.Slider(minimum=1, maximum=100, step=1, label="Top K", value=50)
@@ -696,12 +698,12 @@ with gr.Blocks() as demo:
 
             clear_button2.click(
                 clear,
-                inputs=[yt_input, yt_language_input, yt_timestamps_checkbox, num_beams_slider2, length_penalty_slider2, top_k_slider2, temperature_slider2, yt_transcription_output],
-                outputs=[yt_input, yt_language_input, yt_timestamps_checkbox, num_beams_slider2, length_penalty_slider2, top_k_slider2, temperature_slider2, yt_transcription_output]
+                inputs=[yt_input, yt_language_input, yt_timestamps_checkbox,chunk_length_slider2, num_beams_slider2, length_penalty_slider2, top_k_slider2, temperature_slider2, yt_transcription_output],
+                outputs=[yt_input, yt_language_input, yt_timestamps_checkbox, chunk_length_slider2, num_beams_slider2, length_penalty_slider2, top_k_slider2, temperature_slider2, yt_transcription_output]
             )
             submit_button2.click(
                 transcribe_chunked_audio,
-                inputs=[yt_input, yt_language_input, yt_timestamps_checkbox, num_beams_slider2, length_penalty_slider2, top_k_slider2, temperature_slider2],
+                inputs=[yt_input, yt_language_input, yt_timestamps_checkbox, chunk_length_slider2,num_beams_slider2, length_penalty_slider2, top_k_slider2, temperature_slider2],
                 outputs=[yt_video_output,yt_audio_output,yt_transcription_output,yt_stats_output,yt_download_output]
             )
 
